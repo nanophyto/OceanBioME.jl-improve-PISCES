@@ -10,7 +10,7 @@ struct DissolvedOrganicCarbon{FT, AP}
                              remineralisation_rate :: FT # 1 / s
              bacteria_concentration_depth_exponent :: FT # 
                   reference_bacteria_concentration :: FT # mmol C / m³
-                           temperature_sensetivity :: FT #
+                           temperature_sensitivity :: FT #
 # (1 / (mmol C / m³),  1 / (mmol C / m³),  1 / (mmol C / m³),  1 / (mmol C / m³) / s,  1 / (mmol C / m³) / s)
                             aggregation_parameters :: AP 
 
@@ -18,7 +18,7 @@ struct DissolvedOrganicCarbon{FT, AP}
                                     remineralisation_rate = 0.3/day, # 1 / s
                                     bacteria_concentration_depth_exponent = 0.684, # 
                                     reference_bacteria_concentration = 1.0, # mmol C / m³
-                                    temperature_sensetivity = 1.066, #
+                                    temperature_sensitivity = 1.066, #
 # (1 / (mmol C / m³),  1 / (mmol C / m³),  1 / (mmol C / m³),  1 / (mmol C / m³) / s,  1 / (mmol C / m³) / s)
                                     aggregation_parameters = (0.37, 102, 3530, 5095, 114) .* (10^-6 / day))
 
@@ -29,7 +29,7 @@ struct DissolvedOrganicCarbon{FT, AP}
         return new{FT, AP}(convert(FT, remineralisation_rate), 
                            convert(FT, bacteria_concentration_depth_exponent),
                            convert(FT, reference_bacteria_concentration), 
-                           convert(FT, temperature_sensetivity), 
+                           convert(FT, temperature_sensitivity), 
                            aggregation_parameters)
     end
 end
