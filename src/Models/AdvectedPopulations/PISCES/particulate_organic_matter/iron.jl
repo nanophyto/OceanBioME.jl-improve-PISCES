@@ -38,16 +38,16 @@ end
     θ = iron_ratio(SFe, POC)
 
     # gains
-    grazing_waste =
+    grazing_waste = 
         small_non_assimilated_iron_waste(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    phytoplankton_mortality =
+    phytoplankton_mortality = 
         small_mortality_iron(bgc.phytoplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     zooplankton_mortality = 
         small_mortality_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    large_breakdown =
+    large_breakdown = 
         degredation(bgc.particulate_organic_matter, Val(:BFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     λFe = iron_scavenging_rate(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
