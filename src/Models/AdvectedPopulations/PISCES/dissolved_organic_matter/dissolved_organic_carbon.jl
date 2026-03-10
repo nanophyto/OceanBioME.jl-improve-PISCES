@@ -95,7 +95,7 @@ end
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
 
-    return aggregation(dom, shear, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
+    return aggregation(dom, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
 end
 
 @inline function aggregation_of_colloidal_iron(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
