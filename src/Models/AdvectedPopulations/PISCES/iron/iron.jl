@@ -34,6 +34,21 @@ struct IronInputs{FT}
     bacterial_uptake::FT
 end
 
+@inline function ligand_concentration(iron::SimpleIron, DOC)
+    Lₜᵐᵃˣ = iron.maximum_ligand_concentration
+    Lₜ = iron.dissolved_ligand_ratio * DOC - Lₜᵐᵃˣ
+
+    return max(Lₜᵐᵃˣ, Lₜ)
+end
+
+@inline function ligand_aggregation(iron::SimpleIron, Fe, DOC, T, scavenging_rate)
+    total_ligand_concentration = ligand_concentration(iron, DOC)
+    free_iron_concentration = free_iron(iron, Fe, DOC, T)
+    excess_iron = max(zero(Fe), Fe - total_ligand_concentration)
+
+    return iron.excess_scavenging_enhancement * scavenging_rate * excess_iron * free_iron_concentration
+end
+
 @inline function iron_tendency(::SimpleIron, inputs::IronInputs)
     return (
         inputs.small_particle_iron_remineralisation +
