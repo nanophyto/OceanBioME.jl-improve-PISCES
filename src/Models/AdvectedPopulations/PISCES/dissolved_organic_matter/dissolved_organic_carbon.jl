@@ -43,9 +43,9 @@ required_biogeochemical_tracers(::DissolvedOrganicCarbon) = tuple(:DOC)
     
     grazing_waste = organic_excretion(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     
-    particulate_breakdown = degredation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    particulate_breakdown = degradation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     
-    dissolved_breakdown = degredation(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    dissolved_breakdown = degradation(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     
     aggregation_to_particles, = aggregation(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
@@ -53,7 +53,7 @@ required_biogeochemical_tracers(::DissolvedOrganicCarbon) = tuple(:DOC)
             - dissolved_breakdown - aggregation_to_particles)
 end
 
-@inline function degredation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function degradation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     Bact_ref = dom.reference_bacteria_concentration
     b = dom.temperature_sensitivity
     λ = dom.remineralisation_rate
@@ -123,9 +123,9 @@ end
 
     ΔO₂ = anoxia_factor(bgc, O₂)
 
-    total_degredation = degredation(dom, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    total_degradation = degradation(dom, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return (1 - ΔO₂) * total_degredation
+    return (1 - ΔO₂) * total_degradation
 end
 
 @inline function anoxic_remineralisation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
@@ -133,7 +133,7 @@ end
 
     ΔO₂ = anoxia_factor(bgc, O₂)
 
-    total_degredation = degredation(dom, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    total_degradation = degradation(dom, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return ΔO₂ * total_degredation
+    return ΔO₂ * total_degradation
 end

@@ -30,7 +30,7 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
     bacterial_uptake = bacterial_iron_uptake(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    small_particle_iron_remineralisation = degredation(bgc.particulate_organic_matter, Val(:SFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    small_particle_iron_remineralisation = degradation(bgc.particulate_organic_matter, Val(:SFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     phytoplankton_iron_uptake = uptake(bgc.phytoplankton, Val(:Fe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 

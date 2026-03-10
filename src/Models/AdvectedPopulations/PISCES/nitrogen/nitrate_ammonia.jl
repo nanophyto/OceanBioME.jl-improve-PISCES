@@ -3,7 +3,7 @@
 
 A parameterisation for the evolution of nitrate (`NO₃`) and ammonia (`NH₄`)
 where ammonia can be `nitrif`ied into nitrate, nitrate and ammonia are supplied
-by the bacterial degredation of dissolved organic matter, and consumed by 
+by the bacterial degradation of dissolved organic matter, and consumed by 
 phytoplankton. Additionally waste produces ammonia through various means.
 
 """

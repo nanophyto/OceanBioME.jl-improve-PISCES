@@ -69,7 +69,7 @@ end
         small_mortality_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     large_breakdown = 
-        degredation(bgc.particulate_organic_matter, Val(:BFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+        degradation(bgc.particulate_organic_matter, Val(:BFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     λFe = iron_scavenging_rate(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
@@ -88,7 +88,7 @@ end
 
     aggregation_to_large = aggregation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    small_breakdown = degredation(bgc.particulate_organic_matter, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    small_breakdown = degradation(bgc.particulate_organic_matter, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     return small_particulate_iron_tendency(POC,
                                            SFe,
@@ -137,7 +137,7 @@ end
     # losses
     grazing = total_grazing(bgc.zooplankton, Val(:GOC), i, j, k, grid, bgc, clock, fields, auxiliary_fields) 
 
-    large_breakdown = degredation(bgc.particulate_organic_matter, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    large_breakdown = degradation(bgc.particulate_organic_matter, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     return large_particulate_iron_tendency(POC,
                                            SFe,
@@ -156,11 +156,11 @@ end
                                            large_breakdown)
 end
 
-@inline degredation(poc::TwoCompartementCarbonIronParticles, ::Val{:SFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
-    @inbounds specific_degredation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.SFe[i, j, k]
+@inline degradation(poc::TwoCompartementCarbonIronParticles, ::Val{:SFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
+    @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.SFe[i, j, k]
 
-@inline degredation(poc::TwoCompartementCarbonIronParticles, ::Val{:BFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
-    @inbounds specific_degredation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.BFe[i, j, k]
+@inline degradation(poc::TwoCompartementCarbonIronParticles, ::Val{:BFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
+    @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.BFe[i, j, k]
 
 @inline function iron_scavenging_rate(pom::TwoCompartementCarbonIronParticles, POC, GOC, CaCO₃, PSi)
     λ₀ = pom.minimum_iron_scavenging_rate
