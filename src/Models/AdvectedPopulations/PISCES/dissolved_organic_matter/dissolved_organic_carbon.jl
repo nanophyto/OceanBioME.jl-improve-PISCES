@@ -70,7 +70,7 @@ end
     return λ * f * LBact * Bact / Bact_ref * DOC # differes from Aumont 2015 since the dimensions don't make sense 
 end
 
-@inline function aggregation_fluxes(dom::DissolvedOrganicCarbon, shear, DOC, POC, GOC)
+@inline function aggregation(dom::DissolvedOrganicCarbon, shear, DOC, POC, GOC)
     a₁, a₂, a₃, a₄, a₅ = dom.aggregation_parameters
 
     Φ₁ = shear * (a₁ * DOC + a₂ * POC) * DOC
@@ -94,10 +94,10 @@ end
 
     shear = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
 
-    return aggregation_fluxes(dom, shear, DOC, POC, GOC)
+    return aggregation(dom, shear, DOC, POC, GOC)
 end
 
-@inline function colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
+@inline function aggregation_of_colloidal_iron(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
     
     colloidal_iron = 0.5 * (Fe - Fe′)
     CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
@@ -114,7 +114,7 @@ end
 
     Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
+    return aggregation_of_colloidal_iron(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
 end
 
 @inline function oxic_remineralisation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
