@@ -38,15 +38,25 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
     upper_trophic_waste = upper_trophic_dissolved_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
+    Lₜᵐᵃˣ = bgc.iron.maximum_ligand_concentration
+    Lₜ = bgc.iron.dissolved_ligand_ratio * DOC - Lₜᵐᵃˣ
+    total_ligand_concentration = max(Lₜᵐᵃˣ, Lₜ)
+
+    free_iron_concentration = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+
+    excess_iron = max(zero(Fe), Fe - total_ligand_concentration)
+
+    ligand_aggregation_loss = bgc.iron.excess_scavenging_enhancement *
+                              scavenging_rate *
+                              excess_iron *
+                              free_iron_concentration
+
     return IronInputs(
-        Fe,
-        DOC,
-        T,
-        scavenging_rate,
         small_particle_iron_remineralisation,
-        phytoplankton_iron_uptake,
         grazing_waste,
         upper_trophic_waste,
+        phytoplankton_iron_uptake,
+        ligand_aggregation_loss,
         colloidal_aggregation,
         scavenging,
         bacterial_uptake,
