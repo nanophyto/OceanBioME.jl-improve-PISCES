@@ -1,41 +1,62 @@
 
 @inline iron_ratio(iron_inventory, carbon_inventory) = iron_inventory / (carbon_inventory + eps(0.0))
 
-@inline function small_particulate_iron_tendency(grazing_waste,
+@inline function small_particulate_iron_tendency(POC,
+                                                 SFe,
+                                                 grazing_waste,
                                                  phytoplankton_mortality,
                                                  zooplankton_mortality,
                                                  large_breakdown,
                                                  scavenging,
-                                                 bacterial_assimilation,
+                                                 κ,
+                                                 BactFe,
                                                  colloidal_aggregation,
                                                  grazing,
                                                  aggregation_to_large,
                                                  small_breakdown)
+
+    θ = iron_ratio(SFe, POC)
+
+    bacterial_assimilation = κ * BactFe
+    grazing_iron = grazing * θ
+    aggregation_to_large_iron = aggregation_to_large * θ
+
     return (grazing_waste + phytoplankton_mortality + zooplankton_mortality
             + large_breakdown + scavenging + bacterial_assimilation + colloidal_aggregation
-            - grazing - aggregation_to_large - small_breakdown)
+            - grazing_iron - aggregation_to_large_iron - small_breakdown)
 end
 
-@inline function large_particulate_iron_tendency(grazing_waste,
+@inline function large_particulate_iron_tendency(POC,
+                                                 SFe,
+                                                 GOC,
+                                                 BFe,
+                                                 grazing_waste,
                                                  phytoplankton_mortality,
                                                  zooplankton_mortality,
                                                  upper_trophic_feces,
                                                  scavenging,
-                                                 bacterial_assimilation,
+                                                 κ,
+                                                 BactFe,
                                                  colloidal_aggregation,
                                                  aggregation_to_large,
                                                  grazing,
                                                  large_breakdown)
+    
+    θS = iron_ratio(SFe, POC)
+    θB = iron_ratio(BFe, GOC)
+
+    bacterial_assimilation = κ * BactFe
+    grazing_iron = grazing * θB
+    aggregation_to_large_iron = aggregation_to_large * θS
+
     return (grazing_waste + phytoplankton_mortality + zooplankton_mortality + upper_trophic_feces
-            + scavenging + bacterial_assimilation + colloidal_aggregation + aggregation_to_large
-            - grazing - large_breakdown)
+            + scavenging + bacterial_assimilation + colloidal_aggregation + aggregation_to_large_iron,
+            - grazing_iron - large_breakdown)
 end
 
 @inline function (bgc::TwoCompartementPOCPISCES)(i, j, k, grid, val_name::Val{:SFe}, clock, fields, auxiliary_fields)
     POC = @inbounds fields.POC[i, j, k]
     SFe = @inbounds fields.SFe[i, j, k]
-
-    θ = iron_ratio(SFe, POC)
 
     # gains
     grazing_waste = 
@@ -60,23 +81,24 @@ end
 
     BactFe = bacterial_iron_uptake(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    bacterial_assimilation = κ * BactFe
-
     _, colloidal_aggregation = aggregation_of_colloidal_iron(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     # losses
-    grazing = total_grazing(bgc.zooplankton, Val(:POC), i, j, k, grid, bgc, clock, fields, auxiliary_fields) * θ
+    grazing = total_grazing(bgc.zooplankton, Val(:POC), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    aggregation_to_large = aggregation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * θ
+    aggregation_to_large = aggregation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     small_breakdown = degredation(bgc.particulate_organic_matter, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return small_particulate_iron_tendency(grazing_waste,
+    return small_particulate_iron_tendency(POC,
+                                           SFe,
+                                           grazing_waste,
                                            phytoplankton_mortality,
                                            zooplankton_mortality,
                                            large_breakdown,
                                            scavenging,
-                                           bacterial_assimilation,
+                                           κ,
+                                           BactFe,
                                            colloidal_aggregation,
                                            grazing,
                                            aggregation_to_large,
@@ -89,9 +111,6 @@ end
     GOC = @inbounds fields.GOC[i, j, k]
     BFe = @inbounds fields.BFe[i, j, k]
 
-    θS = iron_ratio(SFe, POC)
-    θB = iron_ratio(BFe, GOC)
-
     # gains
     grazing_waste = large_non_assimilated_iron_waste(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
@@ -99,7 +118,7 @@ end
 
     zooplankton_mortality = large_mortality_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    aggregation_to_large = aggregation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * θS
+    aggregation_to_large = aggregation(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     upper_trophic_feces = upper_trophic_fecal_iron_production(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
@@ -113,21 +132,24 @@ end
 
     BactFe = bacterial_iron_uptake(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    bacterial_assimilation = κ * BactFe
-
     _, _, colloidal_aggregation = aggregation_of_colloidal_iron(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     # losses
-    grazing = total_grazing(bgc.zooplankton, Val(:GOC), i, j, k, grid, bgc, clock, fields, auxiliary_fields) * θB
+    grazing = total_grazing(bgc.zooplankton, Val(:GOC), i, j, k, grid, bgc, clock, fields, auxiliary_fields) 
 
     large_breakdown = degredation(bgc.particulate_organic_matter, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return large_particulate_iron_tendency(grazing_waste,
+    return large_particulate_iron_tendency(POC,
+                                           SFe,
+                                           GOC,
+                                           BFe,
+                                           grazing_waste,
                                            phytoplankton_mortality,
                                            zooplankton_mortality,
                                            upper_trophic_feces,
                                            scavenging,
-                                           bacterial_assimilation,
+                                           κ,
+                                           BactFe,
                                            colloidal_aggregation,
                                            aggregation_to_large,
                                            grazing,
