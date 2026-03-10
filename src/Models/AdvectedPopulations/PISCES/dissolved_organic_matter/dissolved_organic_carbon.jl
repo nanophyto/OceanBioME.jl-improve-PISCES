@@ -70,7 +70,10 @@ end
     return λ * f * LBact * Bact / Bact_ref * DOC # differes from Aumont 2015 since the dimensions don't make sense 
 end
 
-@inline function aggregation(dom::DissolvedOrganicCarbon, shear, DOC, POC, GOC)
+@inline function aggregation(dom::DissolvedOrganicCarbon, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
+    
+    shear = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
+
     a₁, a₂, a₃, a₄, a₅ = dom.aggregation_parameters
 
     Φ₁ = shear * (a₁ * DOC + a₂ * POC) * DOC
@@ -92,9 +95,7 @@ end
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
 
-    shear = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
-
-    return aggregation(dom, shear, DOC, POC, GOC)
+    return aggregation(dom, shear, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
 end
 
 @inline function aggregation_of_colloidal_iron(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
