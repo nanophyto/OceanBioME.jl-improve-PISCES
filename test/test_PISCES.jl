@@ -185,16 +185,21 @@ end=#
 @testset "PISCES iron inputs" begin
     iron = SimpleIron()
 
-    inputs = IronInputs(0.13, 2.1, 10.0, 0.015, 0.02, 0.03, 0.04, 0.05, 0.006, 0.007, 0.008)
+    Fe = 0.13
+    DOC = 2.1
+    T = 10.0
+    scavenging_rate = 0.015
 
-    @test free_iron(iron, inputs) ≈ free_iron(iron, inputs.Fe, inputs.DOC, inputs.T)
-    @test ligand_concentration(iron, inputs) ≈ ligand_concentration(iron, inputs.DOC)
+    @test free_iron(iron, Fe, DOC, T) isa Number
+    @test ligand_concentration(iron, DOC) isa Number
 
-    ligand_aggregation_loss = ligand_aggregation(iron, inputs)
+    ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, scavenging_rate)
+
+    inputs = IronInputs(0.02, 0.04, 0.05, 0.03, ligand_aggregation_loss, 0.006, 0.007, 0.008)
 
     expected = inputs.small_particle_iron_remineralisation + inputs.grazing_waste +
                inputs.upper_trophic_waste - inputs.phytoplankton_iron_uptake -
-               ligand_aggregation_loss - inputs.colloidal_aggregation - inputs.scavenging -
+               inputs.ligand_aggregation_loss - inputs.colloidal_aggregation - inputs.scavenging -
                inputs.bacterial_uptake
 
     @test iron_tendency(iron, inputs) ≈ expected
