@@ -47,16 +47,20 @@ end
     )
 end
 
-@inline function free_iron(::SimpleIron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    DOC = @inbounds fields.DOC[i, j, k]
-    Fe  = @inbounds fields.Fe[i, j, k]
-    T   = @inbounds fields.T[i, j, k]
-
+@inline function free_iron(::SimpleIron, Fe, DOC, T)
     ligands = max(0.6, 0.09 * (DOC + 40) - 3)
     K = exp(16.27 - 1565.7 / max(T + 273.15, 5))
     Δ = 1 + K * ligands - K * Fe
 
     return (-Δ + √(Δ^2 + 4K * Fe)) / 2K
+end
+
+@inline function free_iron(iron::SimpleIron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    DOC = @inbounds fields.DOC[i, j, k]
+    Fe  = @inbounds fields.Fe[i, j, k]
+    T   = @inbounds fields.T[i, j, k]
+
+    return free_iron(iron, Fe, DOC, T)
 end
 
 end # module
