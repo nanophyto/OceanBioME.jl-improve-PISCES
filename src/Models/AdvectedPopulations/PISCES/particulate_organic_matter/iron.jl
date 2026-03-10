@@ -44,7 +44,7 @@ end
     phytoplankton_mortality =
         small_mortality_iron(bgc.phytoplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    zooplankton_mortality =
+    zooplankton_mortality = 
         small_mortality_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     large_breakdown =
