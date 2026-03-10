@@ -55,7 +55,7 @@ end
 
 @inline function degredation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     Bact_ref = dom.reference_bacteria_concentration
-    b = dom.temperature_sensetivity
+    b = dom.temperature_sensitivity
     λ = dom.remineralisation_rate
 
     T   = @inbounds   fields.T[i, j, k]
