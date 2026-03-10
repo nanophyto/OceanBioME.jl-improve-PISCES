@@ -22,103 +22,21 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
     T = @inbounds fields.T[i, j, k]
 
-    scavenging_rate = iron_scavenging_rate(
-        bgc.particulate_organic_matter,
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    scavenging_rate = iron_scavenging_rate(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    colloidal_aggregation, = aggregation_of_colloidal_iron(
-        bgc.dissolved_organic_matter,
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    colloidal_aggregation, = aggregation_of_colloidal_iron(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    scavenging = iron_scavenging(
-        bgc.particulate_organic_matter,
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    scavenging = iron_scavenging(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    bacterial_uptake = bacterial_iron_uptake(
-        bgc.particulate_organic_matter,
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    bacterial_uptake = bacterial_iron_uptake(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    small_particle_iron_remineralisation = degredation(
-        bgc.particulate_organic_matter,
-        Val(:SFe),
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    small_particle_iron_remineralisation = degredation(bgc.particulate_organic_matter, Val(:SFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    phytoplankton_iron_uptake = uptake(
-        bgc.phytoplankton,
-        Val(:Fe),
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    phytoplankton_iron_uptake = uptake(bgc.phytoplankton, Val(:Fe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    grazing_waste = non_assimilated_iron(
-        bgc.zooplankton,
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    grazing_waste = non_assimilated_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    upper_trophic_waste = upper_trophic_dissolved_iron(
-        bgc.zooplankton,
-        i,
-        j,
-        k,
-        grid,
-        bgc,
-        clock,
-        fields,
-        auxiliary_fields,
-    )
+    upper_trophic_waste = upper_trophic_dissolved_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     return IronInputs(
         Fe,
