@@ -4,6 +4,7 @@ using Oceananigans.Architectures: on_architecture
 using Oceananigans.Fields: ConstantField, FunctionField
 
 using OceanBioME.Models.PISCESModel: SimpleIron, NitrateAmmonia
+using OceanBioME.Models.PISCESModel.Iron: IronInputs, iron_tendency, ligand_aggregation, ligand_concentration, free_iron
 
 const PISCES_INITIAL_VALUES = (P = 0.5, PChl = 0.02, PFe = 0.005,
                                D = 0.1, DChl = 0.004, DFe = 0.001, DSi = 0.01,
@@ -179,3 +180,22 @@ end
 
     #test_PISCES_setup(grid) # maybe should test everything works with all the different bits???
 end=#
+
+
+@testset "PISCES iron inputs" begin
+    iron = SimpleIron()
+
+    inputs = IronInputs(0.13, 2.1, 10.0, 0.015, 0.02, 0.03, 0.04, 0.05, 0.006, 0.007, 0.008)
+
+    @test free_iron(iron, inputs) ≈ free_iron(iron, inputs.Fe, inputs.DOC, inputs.T)
+    @test ligand_concentration(iron, inputs) ≈ ligand_concentration(iron, inputs.DOC)
+
+    ligand_aggregation_loss = ligand_aggregation(iron, inputs)
+
+    expected = inputs.small_particle_iron_remineralisation + inputs.grazing_waste +
+               inputs.upper_trophic_waste - inputs.phytoplankton_iron_uptake -
+               ligand_aggregation_loss - inputs.colloidal_aggregation - inputs.scavenging -
+               inputs.bacterial_uptake
+
+    @test iron_tendency(iron, inputs) ≈ expected
+end
