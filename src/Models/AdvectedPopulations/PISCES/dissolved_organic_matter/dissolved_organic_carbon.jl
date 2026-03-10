@@ -97,7 +97,9 @@ end
     return aggregation_fluxes(dom, shear, DOC, POC, GOC)
 end
 
-@inline function colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, colloidal_iron, DOC)
+@inline function colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
+    
+    colloidal_iron = 0.5 * (Fe - Fe′)
     CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
     CgFe2 = Φ₂ * colloidal_iron / (DOC + eps(0.0))
 
@@ -111,9 +113,8 @@ end
     DOC = @inbounds fields.DOC[i, j, k]
 
     Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    colloidal_iron = 0.5 * (Fe - Fe′)
 
-    return colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, colloidal_iron, DOC)
+    return colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
 end
 
 @inline function oxic_remineralisation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
