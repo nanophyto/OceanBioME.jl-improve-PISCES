@@ -70,9 +70,7 @@ end
     return λ * f * LBact * Bact / Bact_ref * DOC # differes from Aumont 2015 since the dimensions don't make sense 
 end
 
-@inline aggregation_shear(background_shear, mixed_layer_shear, z, zₘₓₗ) = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
-
-@inline function aggregation(dom::DissolvedOrganicCarbon, shear, DOC, POC, GOC)
+@inline function aggregation_fluxes(dom::DissolvedOrganicCarbon, shear, DOC, POC, GOC)
     a₁, a₂, a₃, a₄, a₅ = dom.aggregation_parameters
 
     Φ₁ = shear * (a₁ * DOC + a₂ * POC) * DOC
@@ -94,14 +92,12 @@ end
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
 
-    shear = aggregation_shear(background_shear, mixed_layer_shear, z, zₘₓₗ)
+    shear = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
 
-    return aggregation(dom, shear, DOC, POC, GOC)
+    return aggregation_fluxes(dom, shear, DOC, POC, GOC)
 end
 
-@inline colloidal_iron_concentration(Fe, free_iron_concentration) = 0.5 * (Fe - free_iron_concentration)
-
-@inline function colloidal_iron_aggregation(Φ₁, Φ₂, Φ₃, colloidal_iron, DOC)
+@inline function colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, colloidal_iron, DOC)
     CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
     CgFe2 = Φ₂ * colloidal_iron / (DOC + eps(0.0))
 
@@ -115,9 +111,9 @@ end
     DOC = @inbounds fields.DOC[i, j, k]
 
     Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    colloidal_iron = colloidal_iron_concentration(Fe, Fe′)
+    colloidal_iron = 0.5 * (Fe - Fe′)
 
-    return colloidal_iron_aggregation(Φ₁, Φ₂, Φ₃, colloidal_iron, DOC)
+    return colloidal_iron_aggregation_fluxes(Φ₁, Φ₂, Φ₃, colloidal_iron, DOC)
 end
 
 @inline function oxic_remineralisation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
