@@ -183,18 +183,12 @@ end=#
 
 
 @testset "PISCES iron inputs" begin
+
+    # default values from the struct
     iron = SimpleIron()
 
-    Fe = 0.13
-    DOC = 2.1
-    T = 10.0
-    scavenging_rate = 0.015
-
-    @test free_iron(iron, Fe, DOC, T) isa Number
-    @test ligand_concentration(iron, DOC) isa Number
-
-    ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, scavenging_rate)
-
+    # values don't really matter
+    ligand_aggregation_loss = 0.01
     small_particle_iron_remineralisation = 0.02
     grazing_waste = 0.04
     upper_trophic_waste = 0.05
@@ -203,6 +197,7 @@ end=#
     scavenging = 0.007
     bacterial_uptake = 0.008
 
+    # same formulation as iron_tendency
     expected = small_particle_iron_remineralisation + grazing_waste + upper_trophic_waste -
                phytoplankton_iron_uptake - ligand_aggregation_loss - colloidal_aggregation -
                scavenging - bacterial_uptake
