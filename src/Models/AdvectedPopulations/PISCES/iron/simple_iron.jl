@@ -40,20 +40,18 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
     ligand_aggregation_loss = ligand_aggregation(bgc.iron, Fe, DOC, T, scavenging_rate)
 
-    return IronInputs(
-        small_particle_iron_remineralisation,
-        grazing_waste,
-        upper_trophic_waste,
-        phytoplankton_iron_uptake,
-        ligand_aggregation_loss,
-        colloidal_aggregation,
-        scavenging,
-        bacterial_uptake,
-    )
+    return (small_particle_iron_remineralisation,
+            grazing_waste,
+            upper_trophic_waste,
+            phytoplankton_iron_uptake,
+            ligand_aggregation_loss,
+            colloidal_aggregation,
+            scavenging,
+            bacterial_uptake)
 end
 
 @inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)
     inputs = iron_inputs(bgc, i, j, k, grid, clock, fields, auxiliary_fields)
 
-    return iron_tendency(bgc.iron, inputs)
+    return iron_tendency(bgc.iron, inputs...)
 end

@@ -4,7 +4,7 @@ using Oceananigans.Architectures: on_architecture
 using Oceananigans.Fields: ConstantField, FunctionField
 
 using OceanBioME.Models.PISCESModel: SimpleIron, NitrateAmmonia
-using OceanBioME.Models.PISCESModel.Iron: IronInputs, iron_tendency, ligand_aggregation, ligand_concentration, free_iron
+using OceanBioME.Models.PISCESModel.Iron: iron_tendency, ligand_aggregation, ligand_concentration, free_iron
 
 const PISCES_INITIAL_VALUES = (P = 0.5, PChl = 0.02, PFe = 0.005,
                                D = 0.1, DChl = 0.004, DFe = 0.001, DSi = 0.01,
@@ -195,12 +195,25 @@ end=#
 
     ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, scavenging_rate)
 
-    inputs = IronInputs(0.02, 0.04, 0.05, 0.03, ligand_aggregation_loss, 0.006, 0.007, 0.008)
+    small_particle_iron_remineralisation = 0.02
+    grazing_waste = 0.04
+    upper_trophic_waste = 0.05
+    phytoplankton_iron_uptake = 0.03
+    colloidal_aggregation = 0.006
+    scavenging = 0.007
+    bacterial_uptake = 0.008
 
-    expected = inputs.small_particle_iron_remineralisation + inputs.grazing_waste +
-               inputs.upper_trophic_waste - inputs.phytoplankton_iron_uptake -
-               inputs.ligand_aggregation_loss - inputs.colloidal_aggregation - inputs.scavenging -
-               inputs.bacterial_uptake
+    expected = small_particle_iron_remineralisation + grazing_waste + upper_trophic_waste -
+               phytoplankton_iron_uptake - ligand_aggregation_loss - colloidal_aggregation -
+               scavenging - bacterial_uptake
 
-    @test iron_tendency(iron, inputs) ≈ expected
+    @test iron_tendency(iron,
+                        small_particle_iron_remineralisation,
+                        grazing_waste,
+                        upper_trophic_waste,
+                        phytoplankton_iron_uptake,
+                        ligand_aggregation_loss,
+                        colloidal_aggregation,
+                        scavenging,
+                        bacterial_uptake) ≈ expected
 end

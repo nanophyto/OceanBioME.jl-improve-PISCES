@@ -1,6 +1,6 @@
 module Iron
 
-export SimpleIron, IronInputs
+export SimpleIron
 
 using Oceananigans.Units
 
@@ -22,18 +22,6 @@ import OceanBioME.Models.PISCESModel: free_iron
 
 include("simple_iron.jl")
 
-"""Local scalar inputs for the dissolved iron tendency."""
-struct IronInputs{FT}
-    small_particle_iron_remineralisation::FT
-    grazing_waste::FT
-    upper_trophic_waste::FT
-    phytoplankton_iron_uptake::FT
-    ligand_aggregation_loss::FT
-    colloidal_aggregation::FT
-    scavenging::FT
-    bacterial_uptake::FT
-end
-
 @inline function ligand_concentration(iron::SimpleIron, DOC)
     Lₜᵐᵃˣ = iron.maximum_ligand_concentration
     Lₜ = iron.dissolved_ligand_ratio * DOC - Lₜᵐᵃˣ
@@ -49,17 +37,18 @@ end
     return iron.excess_scavenging_enhancement * scavenging_rate * excess_iron * free_iron_concentration
 end
 
-@inline function iron_tendency(::SimpleIron, inputs::IronInputs)
-    return (
-        inputs.small_particle_iron_remineralisation +
-        inputs.grazing_waste +
-        inputs.upper_trophic_waste -
-        inputs.phytoplankton_iron_uptake -
-        inputs.ligand_aggregation_loss -
-        inputs.colloidal_aggregation -
-        inputs.scavenging -
-        inputs.bacterial_uptake
-    )
+@inline function iron_tendency(::SimpleIron,
+                               small_particle_iron_remineralisation,
+                               grazing_waste,
+                               upper_trophic_waste,
+                               phytoplankton_iron_uptake,
+                               ligand_aggregation_loss,
+                               colloidal_aggregation,
+                               scavenging,
+                               bacterial_uptake)
+    return (small_particle_iron_remineralisation + grazing_waste + upper_trophic_waste -
+            phytoplankton_iron_uptake - ligand_aggregation_loss - colloidal_aggregation -
+            scavenging - bacterial_uptake)
 end
 
 @inline function free_iron(::SimpleIron, Fe, DOC, T)
