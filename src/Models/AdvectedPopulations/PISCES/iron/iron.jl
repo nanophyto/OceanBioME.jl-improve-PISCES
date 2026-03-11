@@ -9,12 +9,12 @@ using OceanBioME.Models.PISCESModel: PISCES
 using OceanBioME.Models.PISCESModel.DissolvedOrganicMatter:
     aggregation_of_colloidal_iron, degradation
 
-using OceanBioME.Models.PISCESModel.ParticulateOrganicMatter:
+using OceanBioME.Models.PISCESModel.ParticulateOrganicMatter: 
     iron_scavenging, iron_scavenging_rate, bacterial_iron_uptake
 
 using OceanBioME.Models.PISCESModel.Phytoplankton: uptake
 
-using OceanBioME.Models.PISCESModel.Zooplankton:
+using OceanBioME.Models.PISCESModel.Zooplankton: 
     non_assimilated_iron, upper_trophic_dissolved_iron
 
 import Oceananigans.Biogeochemistry: required_biogeochemical_tracers
