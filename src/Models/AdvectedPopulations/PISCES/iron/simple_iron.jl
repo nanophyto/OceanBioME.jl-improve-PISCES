@@ -16,10 +16,9 @@ required_biogeochemical_tracers(::SimpleIron) = tuple(:Fe)
 
 const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
-@inline function iron_inputs(bgc::SimpleIronPISCES, i, j, k, grid, clock, fields, auxiliary_fields)
+@inline function iron_tendency(bgc::SimpleIronPISCES, i, j, k, grid, clock, fields, auxiliary_fields)
     Fe = @inbounds fields.Fe[i, j, k]
     DOC = @inbounds fields.DOC[i, j, k]
-
     T = @inbounds fields.T[i, j, k]
 
     scavenging_rate = iron_scavenging_rate(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
@@ -38,20 +37,20 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
     upper_trophic_waste = upper_trophic_dissolved_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    ligand_aggregation_loss = ligand_aggregation(bgc.iron, Fe, DOC, T, scavenging_rate)
-
-    return (small_particle_iron_remineralisation,
-            grazing_waste,
-            upper_trophic_waste,
-            phytoplankton_iron_uptake,
-            ligand_aggregation_loss,
-            colloidal_aggregation,
-            scavenging,
-            bacterial_uptake)
+    return iron_tendency(bgc.iron,
+                         Fe,
+                         DOC,
+                         T,
+                         scavenging_rate,
+                         small_particle_iron_remineralisation,
+                         grazing_waste,
+                         upper_trophic_waste,
+                         phytoplankton_iron_uptake,
+                         colloidal_aggregation,
+                         scavenging,
+                         bacterial_uptake)
 end
 
 @inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)
-    inputs = iron_inputs(bgc, i, j, k, grid, clock, fields, auxiliary_fields)
-
-    return iron_tendency(bgc.iron, inputs...)
+    return iron_tendency(bgc, i, j, k, grid, clock, fields, auxiliary_fields)
 end
