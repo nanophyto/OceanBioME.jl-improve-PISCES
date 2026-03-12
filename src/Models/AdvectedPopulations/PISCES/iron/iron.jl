@@ -3,19 +3,22 @@ module Iron
 export SimpleIron
 
 using Oceananigans.Units
+using Oceananigans.Grids: znode, Center
 
-using OceanBioME.Models.PISCESModel: PISCES
+using OceanBioME.Models.PISCESModel: PISCES, anoxia_factor
 
 using OceanBioME.Models.PISCESModel.DissolvedOrganicMatter:
     aggregation_of_colloidal_iron, degradation
 
 using OceanBioME.Models.PISCESModel.ParticulateOrganicMatter: 
-    iron_scavenging, iron_scavenging_rate, bacterial_iron_uptake
+    iron_scavenging, iron_scavenging_rate, bacterial_iron_uptake,
+    specific_degradation_rate, edible_flux_rate, edible_iron_flux_rate
 
 using OceanBioME.Models.PISCESModel.Phytoplankton: uptake
 
 using OceanBioME.Models.PISCESModel.Zooplankton: 
-    non_assimilated_iron, upper_trophic_dissolved_iron
+    non_assimilated_iron, upper_trophic_dissolved_iron,
+    bacteria_concentration, bacteria_activity
 
 import Oceananigans.Biogeochemistry: required_biogeochemical_tracers
 import OceanBioME.Models.PISCESModel: free_iron
@@ -38,17 +41,60 @@ end
 end
 
 @inline function iron_tendency(iron::SimpleIron,
+                               pom,
+                               dom,
+                               phyto,
+                               zoo,
                                Fe,
                                DOC,
                                T,
-                               scavenging_rate,
-                               small_particle_iron_remineralisation,
-                               grazing_waste,
-                               upper_trophic_waste,
-                               phytoplankton_iron_uptake,
-                               colloidal_aggregation,
-                               scavenging,
-                               bacterial_uptake)
+                               POC,
+                               GOC,
+                               SFe,
+                               BFe,
+                               CaCO₃,
+                               PSi,
+                               P,
+                               PChl,
+                               PFe,
+                               D,
+                               DChl,
+                               DFe,
+                               Z,
+                               M,
+                               NH₄,
+                               NO₃,
+                               PO₄,
+                               Si,
+                               ΔO₂,
+                               z,
+                               zₘₓₗ,
+                               zₑᵤ,
+                               Si′,
+                               background_shear,
+                               mixed_layer_shear,
+                               sinking_flux,
+                               sinking_iron_flux)
+    λFe = iron_scavenging_rate(pom, POC, GOC, CaCO₃, PSi)
+    Fe′ = free_iron(iron, Fe, DOC, T)
+
+    food_availability = (; P, D, POC, Z)
+    iron_availability = (; P = PFe / (P + eps(zero(P))),
+                           D = DFe / (D + eps(zero(D))),
+                           POC = SFe / (POC + eps(zero(POC))),
+                           Z = zoo.micro.iron_ratio)
+
+    Bact = bacteria_concentration(zoo, z, zₘₓₗ, zₑᵤ, Z, M)
+    LBact = bacteria_activity(zoo, NH₄, NO₃, PO₄, Fe, DOC)
+
+    small_particle_iron_remineralisation = degradation(pom, Val(:SFe), specific_degradation_rate(pom, ΔO₂, T), SFe)
+    grazing_waste = non_assimilated_iron(zoo, T, Z, M, food_availability, iron_availability, sinking_flux, sinking_iron_flux)
+    upper_trophic_waste = upper_trophic_dissolved_iron(zoo, T, M)
+    phytoplankton_iron_uptake = uptake(phyto, Val(:Fe), T, Fe, NO₃, NH₄, PO₄, Si, Si′, P, PChl, PFe, D, DChl, DFe)
+    colloidal_aggregation, = aggregation_of_colloidal_iron(dom, background_shear, mixed_layer_shear, z, zₘₓₗ, Fe, Fe′, DOC, POC, GOC)
+    scavenging = iron_scavenging(λFe, POC + GOC, Fe′)
+    bacterial_uptake = bacterial_iron_uptake(pom, T, Fe, Bact, LBact)
+
     ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, scavenging_rate)
 
     return (small_particle_iron_remineralisation + grazing_waste + upper_trophic_waste -
