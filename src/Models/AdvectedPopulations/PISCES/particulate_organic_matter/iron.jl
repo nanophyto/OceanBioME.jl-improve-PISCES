@@ -201,15 +201,19 @@ end
     return bacterial_iron_uptake(poc, T, Fe, Bact, LBact)
 end
 
-@inline iron_scavenging(λFe, particulate_carbon, free_iron_concentration) = λFe * particulate_carbon * free_iron_concentration
+@inline function iron_scavenging(poc::TwoCompartementCarbonIronParticles, POC, GOC, CaCO₃, PSi, Fe′)
+    λFe = iron_scavenging_rate(poc, POC, GOC, CaCO₃, PSi)
+
+    return λFe * (POC + GOC) * Fe′
+end
 
 @inline function iron_scavenging(poc::TwoCompartementCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
-
-    λFe = iron_scavenging_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    CaCO₃ = @inbounds fields.CaCO₃[i, j, k]
+    PSi = @inbounds fields.PSi[i, j, k]
 
     Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return iron_scavenging(λFe, POC + GOC, Fe′)
+    return iron_scavenging(poc, POC, GOC, CaCO₃, PSi, Fe′)
 end
