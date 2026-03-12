@@ -53,21 +53,25 @@ required_biogeochemical_tracers(::DissolvedOrganicCarbon) = tuple(:DOC)
             - dissolved_breakdown - aggregation_to_particles)
 end
 
-@inline function degradation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function degradation(dom::DissolvedOrganicCarbon, T, DOC, Bact, LBact)
     Bact_ref = dom.reference_bacteria_concentration
     b = dom.temperature_sensitivity
     λ = dom.remineralisation_rate
 
+    f = b^T
+
+    return λ * f * LBact * Bact / Bact_ref * DOC # differes from Aumont 2015 since the dimensions don't make sense 
+end
+
+@inline function degradation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     T   = @inbounds   fields.T[i, j, k]
     DOC = @inbounds fields.DOC[i, j, k]
-
-    f = b^T
 
     Bact = bacteria_concentration(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
     LBact = bacteria_activity(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return λ * f * LBact * Bact / Bact_ref * DOC # differes from Aumont 2015 since the dimensions don't make sense 
+    return degradation(dom, T, DOC, Bact, LBact)
 end
 
 @inline function aggregation(dom::DissolvedOrganicCarbon, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
@@ -98,8 +102,19 @@ end
     return aggregation(dom, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
 end
 
-@inline function aggregation_of_colloidal_iron(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
-    
+@inline function aggregation_of_colloidal_iron(dom::DissolvedOrganicCarbon,
+                                                background_shear,
+                                                mixed_layer_shear,
+                                                z,
+                                                zₘₓₗ,
+                                                Fe,
+                                                Fe′,
+                                                DOC,
+                                                POC,
+                                                GOC)
+
+    _, Φ₁, Φ₂, Φ₃ = aggregation(dom, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
+
     colloidal_iron = 0.5 * (Fe - Fe′)
     CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
     CgFe2 = Φ₂ * colloidal_iron / (DOC + eps(0.0))
@@ -108,14 +123,33 @@ end
 end
 
 @inline function aggregation_of_colloidal_iron(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    _, Φ₁, Φ₂, Φ₃ = aggregation(dom, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+
+    background_shear = bgc.background_shear
+    mixed_layer_shear = bgc.mixed_layer_shear
+
+    z = znode(i, j, k, grid, Center(), Center(), Center())
+
+    zₘₓₗ = @inbounds auxiliary_fields.zₘₓₗ[i, j, k]
+    
 
     Fe = @inbounds fields.Fe[i, j, k]
-    DOC = @inbounds fields.DOC[i, j, k]
-
     Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-    return aggregation_of_colloidal_iron(Φ₁, Φ₂, Φ₃, Fe, Fe′, DOC)
+    DOC = @inbounds fields.DOC[i, j, k]
+    POC = @inbounds fields.POC[i, j, k]
+    GOC = @inbounds fields.GOC[i, j, k]
+
+
+    return aggregation_of_colloidal_iron(dom,
+                                        background_shear,
+                                        mixed_layer_shear,
+                                        z,
+                                        zₘₓₗ,
+                                        Fe,
+                                        Fe′,
+                                        DOC,
+                                        POC,
+                                        GOC)
 end
 
 @inline function oxic_remineralisation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
