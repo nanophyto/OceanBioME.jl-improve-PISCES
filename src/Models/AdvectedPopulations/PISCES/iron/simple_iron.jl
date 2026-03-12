@@ -20,35 +20,74 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     Fe = @inbounds fields.Fe[i, j, k]
     DOC = @inbounds fields.DOC[i, j, k]
     T = @inbounds fields.T[i, j, k]
+    O₂ = @inbounds fields.O₂[i, j, k]
 
-    scavenging_rate = iron_scavenging_rate(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    POC = @inbounds fields.POC[i, j, k]
+    GOC = @inbounds fields.GOC[i, j, k]
+    SFe = @inbounds fields.SFe[i, j, k]
+    BFe = @inbounds fields.BFe[i, j, k]
+    CaCO₃ = @inbounds fields.CaCO₃[i, j, k]
+    PSi = @inbounds fields.PSi[i, j, k]
 
-    colloidal_aggregation, = aggregation_of_colloidal_iron(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    P = @inbounds fields.P[i, j, k]
+    PChl = @inbounds fields.PChl[i, j, k]
+    PFe = @inbounds fields.PFe[i, j, k]
+    D = @inbounds fields.D[i, j, k]
+    DChl = @inbounds fields.DChl[i, j, k]
+    DFe = @inbounds fields.DFe[i, j, k]
 
-    scavenging = iron_scavenging(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    Z = @inbounds fields.Z[i, j, k]
+    M = @inbounds fields.M[i, j, k]
+    NH₄ = @inbounds fields.NH₄[i, j, k]
+    NO₃ = @inbounds fields.NO₃[i, j, k]
+    PO₄ = @inbounds fields.PO₄[i, j, k]
+    Si = @inbounds fields.Si[i, j, k]
 
-    bacterial_uptake = bacterial_iron_uptake(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    zₘₓₗ = @inbounds auxiliary_fields.zₘₓₗ[i, j, k]
+    zₑᵤ = @inbounds auxiliary_fields.zₑᵤ[i, j, k]
 
-    small_particle_iron_remineralisation = degradation(bgc.particulate_organic_matter, Val(:SFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    z = znode(i, j, k, grid, Center(), Center(), Center())
+    Si′ = @inbounds bgc.silicate_climatology[i, j, k]
+    ΔO₂ = anoxia_factor(bgc, O₂)
 
-    phytoplankton_iron_uptake = uptake(bgc.phytoplankton, Val(:Fe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    grazing_waste = non_assimilated_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    upper_trophic_waste = upper_trophic_dissolved_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    sinking_flux = edible_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
+    sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
 
     return iron_tendency(bgc.iron,
+                         bgc.particulate_organic_matter,
+                         bgc.dissolved_organic_matter,
+                         bgc.phytoplankton,
+                         bgc.zooplankton,
                          Fe,
                          DOC,
                          T,
-                         scavenging_rate,
-                         small_particle_iron_remineralisation,
-                         grazing_waste,
-                         upper_trophic_waste,
-                         phytoplankton_iron_uptake,
-                         colloidal_aggregation,
-                         scavenging,
-                         bacterial_uptake)
+                         POC,
+                         GOC,
+                         SFe,
+                         BFe,
+                         CaCO₃,
+                         PSi,
+                         P,
+                         PChl,
+                         PFe,
+                         D,
+                         DChl,
+                         DFe,
+                         Z,
+                         M,
+                         NH₄,
+                         NO₃,
+                         PO₄,
+                         Si,
+                         ΔO₂,
+                         z,
+                         zₘₓₗ,
+                         zₑᵤ,
+                         Si′,
+                         bgc.background_shear,
+                         bgc.mixed_layer_shear,
+                         sinking_flux,
+                         sinking_iron_flux)
 end
 
 @inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)
