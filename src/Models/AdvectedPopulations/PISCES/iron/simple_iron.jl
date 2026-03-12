@@ -25,7 +25,6 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
     SFe = @inbounds fields.SFe[i, j, k]
-    BFe = @inbounds fields.BFe[i, j, k]
     CaCO₃ = @inbounds fields.CaCO₃[i, j, k]
     PSi = @inbounds fields.PSi[i, j, k]
 
@@ -64,7 +63,6 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
                          POC,
                          GOC,
                          SFe,
-                         BFe,
                          CaCO₃,
                          PSi,
                          P,

@@ -51,7 +51,6 @@ end
                                POC,
                                GOC,
                                SFe,
-                               BFe,
                                CaCO₃,
                                PSi,
                                P,
