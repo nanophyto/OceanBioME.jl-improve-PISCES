@@ -42,6 +42,32 @@ end
     return σ * (gI + gfI)
 end
 
+@inline function non_assimilated_iron(zoo::QualityDependantZooplankton,
+                                         T,
+                                         I,
+                                         food_availability::NamedTuple,
+                                         iron_availability::NamedTuple,
+                                         sinking_flux,
+                                         sinking_iron_flux)
+    θ = zoo.iron_ratio
+    σ = zoo.non_assililated_fraction
+
+    gI, growth_efficiency = grazing(zoo, T, I, food_availability, iron_availability)
+    gfI = flux_feeding(zoo, T, I, sinking_flux)
+
+    zoo_assimilated_iron = θ * growth_efficiency * (gI + gfI)
+
+    gIFe = iron_grazing(zoo, T, I, food_availability, iron_availability)
+
+    gfIFe = iron_flux_feeding(zoo, T, I, sinking_iron_flux)
+
+    lost_to_particles = σ * (gIFe + gfIFe)
+
+    total_iron_grazed = gIFe + gfIFe
+
+    return total_iron_grazed - lost_to_particles - zoo_assimilated_iron
+end
+
 @inline function non_assimilated_iron(zoo::QualityDependantZooplankton, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     θ = zoo.iron_ratio
     σ = zoo.non_assililated_fraction
