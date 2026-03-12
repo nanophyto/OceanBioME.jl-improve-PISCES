@@ -9,7 +9,7 @@ mondo approach for nitrate (NO₃), ammonia (NH₄), phosphate (PO₄),
 and silicate (Si), but the quota approach is used for iron (Fe) 
 and light (PAR).
 
-Therefore each class has a carbon compartement (generically `I`),
+Therefore each class has a carbon compartment (generically `I`),
 chlorophyll (`IChl`), and iron (`IFe`), and may also have silicate
 (`ISi`) if the `nutrient_limitation` specifies that the growth is
 silicate limited, despite the fact that the silicate still limits 
