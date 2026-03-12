@@ -1,6 +1,6 @@
-# these are just completly different to eachother so not going to try and define a generic function 
+# these are just completely different to each other so not going to try and define a generic function 
 
-@inline function (bgc::TwoCompartementPOCPISCES)(i, j, k, grid, val_name::Val{:POC}, clock, fields, auxiliary_fields)
+@inline function (bgc::TwoCompartmentPOCPISCES)(i, j, k, grid, val_name::Val{:POC}, clock, fields, auxiliary_fields)
     # gains
     grazing_waste = small_non_assimilated_waste(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
@@ -25,7 +25,7 @@
             - grazing - aggregation_to_large - small_breakdown)
 end
 
-@inline function (bgc::TwoCompartementPOCPISCES)(i, j, k, grid, val_name::Val{:GOC}, clock, fields, auxiliary_fields)
+@inline function (bgc::TwoCompartmentPOCPISCES)(i, j, k, grid, val_name::Val{:GOC}, clock, fields, auxiliary_fields)
     # gains
     grazing_waste = large_non_assimilated_waste(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
@@ -49,11 +49,11 @@ end
             - grazing  - large_breakdown)
 end
 
-@inline degradation(poc::TwoCompartementCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = # for going to DOC
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = # for going to DOC
     degradation(poc::TwoCompartementCarbonIronParticles, Val(:POC), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-@inline degradation(poc::TwoCompartementCarbonIronParticles, ::Val{:POC}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = 
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:POC}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = 
     @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.POC[i, j, k]
 
-@inline degradation(poc::TwoCompartementCarbonIronParticles, ::Val{:GOC}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = 
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:GOC}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = 
     @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.GOC[i, j, k]

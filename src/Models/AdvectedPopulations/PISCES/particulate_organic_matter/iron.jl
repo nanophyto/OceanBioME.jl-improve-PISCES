@@ -54,7 +54,7 @@ end
             - grazing_iron - large_breakdown)
 end
 
-@inline function (bgc::TwoCompartementPOCPISCES)(i, j, k, grid, val_name::Val{:SFe}, clock, fields, auxiliary_fields)
+@inline function (bgc::TwoCompartmentPOCPISCES)(i, j, k, grid, val_name::Val{:SFe}, clock, fields, auxiliary_fields)
     POC = @inbounds fields.POC[i, j, k]
     SFe = @inbounds fields.SFe[i, j, k]
 
@@ -105,7 +105,7 @@ end
                                            small_breakdown)
 end
 
-@inline function (bgc::TwoCompartementPOCPISCES)(i, j, k, grid, val_name::Val{:BFe}, clock, fields, auxiliary_fields)
+@inline function (bgc::TwoCompartmentPOCPISCES)(i, j, k, grid, val_name::Val{:BFe}, clock, fields, auxiliary_fields)
     POC = @inbounds fields.POC[i, j, k]
     SFe = @inbounds fields.SFe[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
@@ -156,20 +156,20 @@ end
                                            large_breakdown)
 end
 
-@inline degradation(poc::TwoCompartementCarbonIronParticles, ::Val{:SFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:SFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.SFe[i, j, k]
 
-@inline degradation(poc::TwoCompartementCarbonIronParticles, ::Val{:BFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:BFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.BFe[i, j, k]
 
-@inline function iron_scavenging_rate(pom::TwoCompartementCarbonIronParticles, POC, GOC, CaCO₃, PSi)
+@inline function iron_scavenging_rate(pom::TwoCompartmentCarbonIronParticles, POC, GOC, CaCO₃, PSi)
     λ₀ = pom.minimum_iron_scavenging_rate
     λ₁ = pom.load_specific_iron_scavenging_rate
 
     return λ₀ + λ₁ * (POC + GOC + CaCO₃ + PSi)
 end
 
-@inline function iron_scavenging_rate(pom::TwoCompartementCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function iron_scavenging_rate(pom::TwoCompartmentCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
     CaCO₃ = @inbounds fields.CaCO₃[i, j, k]
@@ -178,9 +178,9 @@ end
     return iron_scavenging_rate(pom, POC, GOC, CaCO₃, PSi)
 end
 
-@inline function bacterial_iron_uptake(poc::TwoCompartementCarbonIronParticles, T, Fe, Bact, LBact)
+@inline function bacterial_iron_uptake(poc::TwoCompartmentCarbonIronParticles, T, Fe, Bact, LBact)
     μ₀ = poc.maximum_bacterial_growth_rate
-    b  = poc.temperature_sensetivity
+    b  = poc.temperature_sensitivity
     θ  = poc.maximum_iron_ratio_in_bacteria
     K  = poc.iron_half_saturation_for_bacteria
     κ  = poc.bacterial_iron_uptake_efficiency
@@ -190,7 +190,7 @@ end
     return μ * LBact * θ * Fe / (Fe + K) * Bact * κ
 end
 
-@inline function bacterial_iron_uptake(poc::TwoCompartementCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function bacterial_iron_uptake(poc::TwoCompartmentCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     T = @inbounds fields.T[i, j, k]
     Fe = @inbounds fields.Fe[i, j, k]
 
@@ -201,13 +201,13 @@ end
     return bacterial_iron_uptake(poc, T, Fe, Bact, LBact)
 end
 
-@inline function iron_scavenging(poc::TwoCompartementCarbonIronParticles, POC, GOC, CaCO₃, PSi, Fe′)
+@inline function iron_scavenging(poc::TwoCompartmentCarbonIronParticles, POC, GOC, CaCO₃, PSi, Fe′)
     λFe = iron_scavenging_rate(poc, POC, GOC, CaCO₃, PSi)
 
     return λFe * (POC + GOC) * Fe′
 end
 
-@inline function iron_scavenging(poc::TwoCompartementCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function iron_scavenging(poc::TwoCompartmentCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     POC = @inbounds fields.POC[i, j, k]
     GOC = @inbounds fields.GOC[i, j, k]
     CaCO₃ = @inbounds fields.CaCO₃[i, j, k]

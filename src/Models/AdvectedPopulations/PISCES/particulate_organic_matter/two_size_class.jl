@@ -64,7 +64,7 @@ struct TwoCompartmentCarbonIronParticles{FT, AP}
 
         AP = typeof(aggregation_parameters)
 
-        return new{FT, AP}(convert(FT, temperature_sensetivity),
+        return new{FT, AP}(convert(FT, temperature_sensitivity),
                            convert(FT, base_breakdown_rate),
                            aggregation_parameters,
                            convert(FT, minimum_iron_scavenging_rate),
