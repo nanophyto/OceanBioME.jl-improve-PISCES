@@ -174,26 +174,35 @@ end
     return phyto.growth_rate(val_name, i, j, k, grid, bgc, phyto, clock, fields, auxiliary_fields, L) * I
 end
 
-@inline function iron_uptake(phyto::MixedMondo, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function iron_uptake(phyto::MixedMondo, T, Fe, I, IChl, IFe, NO₃, NH₄, PO₄, Si, Si′)
     δ  = phyto.exudated_fracton
     θFeₘ = phyto.maximum_iron_ratio
 
-    T  = @inbounds  fields.T[i, j, k]
-    Fe = @inbounds fields.Fe[i, j, k]
+    θFe = IFe / (I + eps(0.0))
 
-    I, IChl, IFe = phytoplankton_concentrations(val_name, i, j, k, fields)
-
-    θFe = IFe / (I + eps(0.0)) # μmol Fe / mmol C
-
-    L, LFe = phyto.nutrient_limitation(val_name, i, j, k, grid, bgc, phyto, clock, fields, auxiliary_fields)
+    L, LFe = phyto.nutrient_limitation(phyto, I, IChl, IFe, NO₃, NH₄, PO₄, Si, Si′)
 
     μᵢ = base_production_rate(phyto.growth_rate, T)
 
-    L₁ = iron_uptake_limitation(phyto, I, Fe) # assuming bFe = Fe
+    L₁ = iron_uptake_limitation(phyto, I, Fe)
 
-    L₂ = 4 - 4.5 * LFe / (LFe + 1) # typo in Aumount 2015
+    L₂ = 4 - 4.5 * LFe / (LFe + 1)
 
     return (1 - δ) * θFeₘ * L₁ * L₂ * max(0, (1 - θFe / θFeₘ) / (1.05 - θFe / θFeₘ)) * μᵢ * I
+end
+
+@inline function iron_uptake(phyto::MixedMondo, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    T  = @inbounds  fields.T[i, j, k]
+    Fe = @inbounds fields.Fe[i, j, k]
+    NO₃ = @inbounds fields.NO₃[i, j, k]
+    NH₄ = @inbounds fields.NH₄[i, j, k]
+    PO₄ = @inbounds fields.PO₄[i, j, k]
+    Si  = @inbounds  fields.Si[i, j, k]
+    Si′ = @inbounds bgc.silicate_climatology[i, j, k]
+
+    I, IChl, IFe = phytoplankton_concentrations(val_name, i, j, k, fields)
+
+    return iron_uptake(phyto, T, Fe, I, IChl, IFe, NO₃, NH₄, PO₄, Si, Si′)
 end
 
 @inline function iron_uptake_limitation(phyto, I, Fe)
