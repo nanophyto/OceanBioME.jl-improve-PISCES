@@ -4,7 +4,7 @@ architecture = CPU()
 using Oceananigans.Architectures: on_architecture
 using Oceananigans.Fields: ConstantField, FunctionField
 
-using OceanBioME.Models.PISCESModel: SimpleIron, NitrateAmmonia
+using OceanBioME.Models.PISCESModel: PISCES, SimpleIron, NitrateAmmonia
 using OceanBioME.Models.PISCESModel.Iron: iron_tendency, ligand_aggregation, ligand_concentration, free_iron
 
 const PISCES_INITIAL_VALUES = (P = 0.5, PChl = 0.02, PFe = 0.005,
@@ -30,6 +30,84 @@ function set_PISCES_initial_values!(tracers; values = PISCES_INITIAL_VALUES)
 end
 
 value(field; indices = (1, 1, 1)) = on_architecture(CPU(), interior(field, indices...))[1]
+
+const PISCES_SCALAR_IRON_TEST_VALUES = merge(PISCES_INITIAL_VALUES, (;
+    ΔO₂ = 1.0,
+    z = -5.0,
+    zₘₓₗ = -10.0,
+    zₑᵤ = -10.0,
+    Si′ = 7.5,
+    background_shear = 0.01,
+    mixed_layer_shear = 1.0,
+    sinking_flux = 0.0,
+    sinking_iron_flux = 0.0,
+))
+
+all_scalar_numbers(result::Number) = true
+all_scalar_numbers(result::Tuple) = all(all_scalar_numbers, result)
+all_scalar_numbers(result) = false
+
+function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
+    return iron_tendency(bgc.iron,
+                         bgc.particulate_organic_matter,
+                         bgc.dissolved_organic_matter,
+                         bgc.phytoplankton,
+                         bgc.zooplankton,
+                         values.Fe,
+                         values.DOC,
+                         values.T,
+                         values.POC,
+                         values.GOC,
+                         values.SFe,
+                         values.CaCO₃,
+                         values.PSi,
+                         values.P,
+                         values.PChl,
+                         values.PFe,
+                         values.D,
+                         values.DChl,
+                         values.DFe,
+                         values.Z,
+                         values.M,
+                         values.NH₄,
+                         values.NO₃,
+                         values.PO₄,
+                         values.Si,
+                         values.ΔO₂,
+                         values.z,
+                         values.zₘₓₗ,
+                         values.zₑᵤ,
+                         values.Si′,
+                         values.background_shear,
+                         values.mixed_layer_shear,
+                         values.sinking_flux,
+                         values.sinking_iron_flux)
+end
+
+scalar_iron_test_cases(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES) = (
+    (; name = "iron_tendency",
+       values,
+       call = () -> scalar_iron_tendency(bgc; values)),
+)
+
+function test_PISCES_scalar_iron_functions()
+    @info "Testing scalar PISCES iron functions"
+
+    validation_warning = "This implementation of PISCES is in early development and has not yet been validated against the operational version"
+
+    grid = BoxModelGrid(; z = -5)
+    bgc = (@test_warn validation_warning PISCES(; grid)).underlying_biogeochemistry
+
+    for case in scalar_iron_test_cases(bgc)
+        @testset case.name begin
+            result = case.call()
+
+            @test all_scalar_numbers(result)
+        end
+    end
+
+    return nothing
+end
 
 function test_PISCES_conservation() # only on CPU please
     @info "Testing PISCES element conservation (C, Fe, P, Si, N)"
@@ -178,6 +256,10 @@ end
     test_PISCES_update_state(architecture)
 
     test_PISCES_negativity_protection(architecture)
+
+    if architecture isa CPU
+        test_PISCES_scalar_iron_functions()
+    end
 
     #test_PISCES_setup(grid) # maybe should test everything works with all the different bits???
 end
