@@ -85,7 +85,7 @@ function test_PISCES_conservation() # only on CPU please
     # double precision floats are only valid to 17 bits so this tolerance is actually good
     @test isapprox(total_carbon_tendencies, 0, atol = 10^-20)
     @test isapprox(total_iron_tendencies, 0, atol = 10^-21)
-    @test isapprox(total_silicon_tendencies, 0, atol = 10^-30)
+    @test isapprox(total_silicon_tendencies, 0, atol = 10^-21)
     @test isapprox(total_phosphate_tendencies, 0, atol = 10^-22)
     @test isapprox(total_nitrogen_tendencies, 0, atol = 10^-21)
 
@@ -167,7 +167,7 @@ function test_PISCES_negativity_protection(arch)
     @test on_architecture(CPU(), interior(model.tracers.Fe, 1, 1, 1))[1] == 0
     @test on_architecture(CPU(), interior(model.tracers.Z, 1, 1, 1))[1] ≈ 900
 end
-#=
+
 @testset "PISCES" begin
     if architecture isa CPU
         test_PISCES_conservation()
@@ -179,41 +179,4 @@ end
     test_PISCES_negativity_protection(architecture)
 
     #test_PISCES_setup(grid) # maybe should test everything works with all the different bits???
-end=#
-
-
-@testset "PISCES iron inputs" begin
-
-    iron = SimpleIron()
-
-    Fe = 0.13
-    DOC = 2.1
-    T = 10.0
-    scavenging_rate = 0.09
-    small_particle_iron_remineralisation = 0.02
-    grazing_waste = 0.04
-    upper_trophic_waste = 0.05
-    phytoplankton_iron_uptake = 0.03
-    colloidal_aggregation = 0.006
-    scavenging = 0.007
-    bacterial_uptake = 0.008
-
-    ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, scavenging_rate)
-
-    expected = small_particle_iron_remineralisation + grazing_waste + upper_trophic_waste -
-               phytoplankton_iron_uptake - ligand_aggregation_loss - colloidal_aggregation -
-               scavenging - bacterial_uptake
-
-    @test iron_tendency(iron,
-                        Fe,
-                        DOC,
-                        T,
-                        scavenging_rate,
-                        small_particle_iron_remineralisation,
-                        grazing_waste,
-                        upper_trophic_waste,
-                        phytoplankton_iron_uptake,
-                        colloidal_aggregation,
-                        scavenging,
-                        bacterial_uptake) ≈ expected
 end

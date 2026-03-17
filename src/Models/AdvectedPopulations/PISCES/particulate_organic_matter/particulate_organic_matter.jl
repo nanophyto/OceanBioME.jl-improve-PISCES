@@ -1,6 +1,6 @@
 module ParticulateOrganicMatter
 
-export TwoCompartementCarbonIronParticles
+export TwoCompartmentCarbonIronParticles
 
 using Oceananigans.Units
 

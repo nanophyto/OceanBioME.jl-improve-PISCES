@@ -50,7 +50,7 @@ end
 end
 
 @inline degradation(poc::TwoCompartmentCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = # for going to DOC
-    degradation(poc::TwoCompartementCarbonIronParticles, Val(:POC), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    degradation(poc::TwoCompartmentCarbonIronParticles, Val(:POC), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
 @inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:POC}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) = 
     @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.POC[i, j, k]

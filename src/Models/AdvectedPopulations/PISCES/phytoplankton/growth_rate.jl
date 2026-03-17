@@ -50,7 +50,7 @@ end
     NutrientLimitedProduction
 
 `BaseProduction` with light limitation moderated by nutrient availability. This is
-the "origional" PISCES phytoplankton growth rate model. Growth rate is of the form:
+the "original" PISCES phytoplankton growth rate model. Growth rate is of the form:
 
 ```math
 μ = μ₁f₁(τᵈ)f₂(zₘₓₗ)(1-exp(-α θᶜʰˡ PAR / τ μ₀ L)) L.

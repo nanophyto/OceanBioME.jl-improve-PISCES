@@ -24,7 +24,7 @@ struct MixedMondo{GR, NL, FT}
                         growth_rate :: GR
                 nutrient_limitation :: NL
                         
-                   exudated_fracton :: FT # 
+                   exudated_fraction :: FT # 
 
               blue_light_absorption :: FT #
              green_light_absorption :: FT #
