@@ -1,4 +1,5 @@
 include("dependencies_for_runtests.jl")
+architecture = CPU()
 
 using Oceananigans.Architectures: on_architecture
 using Oceananigans.Fields: ConstantField, FunctionField
