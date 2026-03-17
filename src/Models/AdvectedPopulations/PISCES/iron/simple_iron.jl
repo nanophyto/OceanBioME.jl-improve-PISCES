@@ -16,48 +16,78 @@ required_biogeochemical_tracers(::SimpleIron) = tuple(:Fe)
 
 const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
-@inline function (bgc::SimpleIronPISCES)(i, j, k, grid, val_name::Val{:Fe}, clock, fields, auxiliary_fields)
-    λ̄ = bgc.iron.excess_scavenging_enhancement
-
+@inline function iron_tendency(bgc::SimpleIronPISCES, i, j, k, grid, clock, fields, auxiliary_fields)
     Fe = @inbounds fields.Fe[i, j, k]
+    DOC = @inbounds fields.DOC[i, j, k]
+    T = @inbounds fields.T[i, j, k]
+    O₂ = @inbounds fields.O₂[i, j, k]
 
-    λFe = iron_scavenging_rate(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    
-    Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    POC = @inbounds fields.POC[i, j, k]
+    GOC = @inbounds fields.GOC[i, j, k]
+    SFe = @inbounds fields.SFe[i, j, k]
+    CaCO₃ = @inbounds fields.CaCO₃[i, j, k]
+    PSi = @inbounds fields.PSi[i, j, k]
 
-    total_ligand_concentration = ligand_concentration(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    P = @inbounds fields.P[i, j, k]
+    PChl = @inbounds fields.PChl[i, j, k]
+    PFe = @inbounds fields.PFe[i, j, k]
+    D = @inbounds fields.D[i, j, k]
+    DChl = @inbounds fields.DChl[i, j, k]
+    DFe = @inbounds fields.DFe[i, j, k]
 
-    # terminal process which removes iron from the ocean
-    ligand_aggregation = λ̄ * λFe * max(0, Fe - total_ligand_concentration) * Fe′
+    Z = @inbounds fields.Z[i, j, k]
+    M = @inbounds fields.M[i, j, k]
+    NH₄ = @inbounds fields.NH₄[i, j, k]
+    NO₃ = @inbounds fields.NO₃[i, j, k]
+    PO₄ = @inbounds fields.PO₄[i, j, k]
+    Si = @inbounds fields.Si[i, j, k]
 
-    colloidal_aggregation, = aggregation_of_colloidal_iron(bgc.dissolved_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    zₘₓₗ = @inbounds auxiliary_fields.zₘₓₗ[i, j, k]
+    zₑᵤ = @inbounds auxiliary_fields.zₑᵤ[i, j, k]
 
-    # scavenging and bacterial uptake
-    scavenging = iron_scavenging(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    z = znode(i, j, k, grid, Center(), Center(), Center())
+    Si′ = @inbounds bgc.silicate_climatology[i, j, k]
+    ΔO₂ = anoxia_factor(bgc, O₂)
 
-    BactFe = bacterial_iron_uptake(bgc.particulate_organic_matter, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    sinking_flux = edible_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
+    sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
 
-    # particle breakdown
-    small_particles = degradation(bgc.particulate_organic_matter, Val(:SFe), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    # consumption
-    consumption = uptake(bgc.phytoplankton, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    # waste
-    grazing_waste = non_assimilated_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    upper_trophic_waste = upper_trophic_dissolved_iron(bgc.zooplankton, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    return (small_particles + grazing_waste + upper_trophic_waste
-            - consumption - ligand_aggregation - colloidal_aggregation - scavenging - BactFe)
+    return iron_tendency(bgc.iron,
+                         bgc.particulate_organic_matter,
+                         bgc.dissolved_organic_matter,
+                         bgc.phytoplankton,
+                         bgc.zooplankton,
+                         Fe,
+                         DOC,
+                         T,
+                         POC,
+                         GOC,
+                         SFe,
+                         CaCO₃,
+                         PSi,
+                         P,
+                         PChl,
+                         PFe,
+                         D,
+                         DChl,
+                         DFe,
+                         Z,
+                         M,
+                         NH₄,
+                         NO₃,
+                         PO₄,
+                         Si,
+                         ΔO₂,
+                         z,
+                         zₘₓₗ,
+                         zₑᵤ,
+                         Si′,
+                         bgc.background_shear,
+                         bgc.mixed_layer_shear,
+                         sinking_flux,
+                         sinking_iron_flux)
 end
 
-@inline function ligand_concentration(iron::SimpleIron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    Lₜᵐᵃˣ = iron.maximum_ligand_concentration
-
-    DOC = @inbounds fields.DOC[i, j, k]
-
-    Lₜ = iron.dissolved_ligand_ratio * DOC - Lₜᵐᵃˣ
-    
-    return max(Lₜᵐᵃˣ, Lₜ)
+@inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)
+    return iron_tendency(bgc, i, j, k, grid, clock, fields, auxiliary_fields)
 end

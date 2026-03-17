@@ -1,9 +1,11 @@
 include("dependencies_for_runtests.jl")
+architecture = CPU()
 
 using Oceananigans.Architectures: on_architecture
 using Oceananigans.Fields: ConstantField, FunctionField
 
 using OceanBioME.Models.PISCESModel: SimpleIron, NitrateAmmonia
+using OceanBioME.Models.PISCESModel.Iron: iron_tendency, ligand_aggregation, ligand_concentration, free_iron
 
 const PISCES_INITIAL_VALUES = (P = 0.5, PChl = 0.02, PFe = 0.005,
                                D = 0.1, DChl = 0.004, DFe = 0.001, DSi = 0.01,
@@ -96,7 +98,7 @@ end
 @inline κ_func(z) = ifelse(z > -25, 2, 1)
 
 function test_PISCES_update_state(arch)
-    @info "Testing PISCES auxiliary field computation and timestepping"
+    @info "Testing PISCES auxiliary field computation and time stepping"
     # TODO: implement and test mixed layer depth computation elsewhere
 
     grid = RectilinearGrid(arch, topology = (Flat, Flat, Bounded), size = (10, ), extent = (100, ))

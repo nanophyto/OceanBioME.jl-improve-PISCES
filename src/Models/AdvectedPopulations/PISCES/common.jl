@@ -64,3 +64,10 @@ end
 
     return min(1, max(0, 0.4 * (min_1 - O₂) / (min_2 + O₂)))
 end
+
+@inline function anoxia_factor(O₂_min_1, O₂_min_2, O₂)
+    min_1 = O₂_min_1
+    min_2 = O₂_min_2
+
+    return min(1, max(0, 0.4 * (min_1 - O₂) / (min_2 + O₂)))
+end

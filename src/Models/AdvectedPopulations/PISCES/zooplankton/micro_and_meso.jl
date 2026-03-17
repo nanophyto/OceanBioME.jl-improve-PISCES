@@ -63,6 +63,17 @@ end
     (organic_excretion(zoo.micro, Val(:Z), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
      + organic_excretion(zoo.meso, Val(:M), i, j, k, grid, bgc, clock, fields, auxiliary_fields))
 
+@inline non_assimilated_iron(zoo::MicroAndMeso,
+                                 T,
+                                 Z,
+                                 M,
+                                 food_availability::NamedTuple,
+                                 iron_availability::NamedTuple,
+                                 sinking_flux,
+                                 sinking_iron_flux) =
+    (non_assimilated_iron(zoo.micro, T, Z, food_availability, iron_availability, sinking_flux, sinking_iron_flux)
+     + non_assimilated_iron(zoo.meso, T, M, food_availability, iron_availability, sinking_flux, sinking_iron_flux))
+
 @inline non_assimilated_iron(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     (non_assimilated_iron(zoo.micro, Val(:Z), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
      + non_assimilated_iron(zoo.meso, Val(:M), i, j, k, grid, bgc, clock, fields, auxiliary_fields))
@@ -73,6 +84,9 @@ end
 @inline upper_trophic_respiration(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     upper_trophic_respiration(zoo.meso, Val(:M), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
      
+@inline upper_trophic_dissolved_iron(zoo::MicroAndMeso, T, M) =
+    upper_trophic_dissolved_iron(zoo.meso, T, M)
+
 @inline upper_trophic_dissolved_iron(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     upper_trophic_dissolved_iron(zoo.meso, Val(:M), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     
@@ -82,11 +96,21 @@ end
 @inline upper_trophic_fecal_iron_production(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     upper_trophic_fecal_iron_production(zoo.meso, Val(:M), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-@inline function bacteria_concentration(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function bacteria_concentration(zoo::MicroAndMeso, z, zₘₓₗ, zₑᵤ, Z, M)
     bZ = zoo.microzooplankton_bacteria_concentration
     bM = zoo.mesozooplankton_bacteria_concentration
     a  = zoo.bacteria_concentration_depth_exponent
 
+    zₘ = min(zₘₓₗ, zₑᵤ)
+
+    surface_bacteria = min(zoo.maximum_bacteria_concentration, bZ * Z + bM * M)
+
+    depth_factor = (zₘ / z) ^ a
+
+    return ifelse(z >= zₘ, 1, depth_factor) * surface_bacteria
+end
+
+@inline function bacteria_concentration(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
     z = znode(i, j, k, grid, Center(), Center(), Center())
 
     zₘₓₗ = @inbounds auxiliary_fields.zₘₓₗ[i, j, k]
@@ -95,27 +119,15 @@ end
     Z = @inbounds fields.Z[i, j, k]
     M = @inbounds fields.M[i, j, k]
 
-    zₘ = min(zₘₓₗ, zₑᵤ)
-
-    surface_bacteria = min(4, bZ * Z + bM * M)
-
-    depth_factor = (zₘ / z) ^ a
-
-    return ifelse(z >= zₘ, 1, depth_factor) * surface_bacteria
+    return bacteria_concentration(zoo, z, zₘₓₗ, zₑᵤ, Z, M)
 end
 
-@inline function bacteria_activity(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+@inline function bacteria_activity(zoo::MicroAndMeso, NH₄, NO₃, PO₄, Fe, DOC)
     K_DOC = zoo.doc_half_saturation_for_bacterial_activity
     K_NO₃ = zoo.nitrate_half_saturation_for_bacterial_activity
     K_NH₄ = zoo.ammonia_half_saturation_for_bacterial_activity
     K_PO₄ = zoo.phosphate_half_saturation_for_bacterial_activity
     K_Fe  = zoo.iron_half_saturation_for_bacterial_activity
-
-    NH₄ = @inbounds fields.NH₄[i, j, k]
-    NO₃ = @inbounds fields.NO₃[i, j, k]
-    PO₄ = @inbounds fields.PO₄[i, j, k]
-    Fe  = @inbounds  fields.Fe[i, j, k]
-    DOC = @inbounds fields.DOC[i, j, k]
 
     DOC_limit = DOC / (DOC + K_DOC)
 
@@ -129,6 +141,16 @@ end
     limiting_quota = min(L_N, L_PO₄, L_Fe)
 
     return limiting_quota * DOC_limit
+end
+
+@inline function bacteria_activity(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
+    NH₄ = @inbounds fields.NH₄[i, j, k]
+    NO₃ = @inbounds fields.NO₃[i, j, k]
+    PO₄ = @inbounds fields.PO₄[i, j, k]
+    Fe  = @inbounds  fields.Fe[i, j, k]
+    DOC = @inbounds fields.DOC[i, j, k]
+
+    return bacteria_activity(zoo, NH₄, NO₃, PO₄, Fe, DOC)
 end
 
 @inline calcite_loss(zoo::MicroAndMeso, val_prey_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =

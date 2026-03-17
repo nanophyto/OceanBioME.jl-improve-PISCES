@@ -11,6 +11,24 @@ required_biogeochemical_tracers(phyto::NanoAndDiatoms) = (required_biogeochemica
     (dissolved_exudate(phyto.nano, Val(:P), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
      + dissolved_exudate(phyto.diatoms, Val(:D), i, j, k, grid, bgc, clock, fields, auxiliary_fields))
 
+@inline uptake(phyto::NanoAndDiatoms,
+               ::Val{:Fe},
+               T,
+               Fe,
+               NO₃,
+               NH₄,
+               PO₄,
+               Si,
+               Si′,
+               P,
+               PChl,
+               PFe,
+               D,
+               DChl,
+               DFe) =
+    (iron_uptake(phyto.nano, T, Fe, P, PChl, PFe, NO₃, NH₄, PO₄, Si, Si′)
+     + iron_uptake(phyto.diatoms, T, Fe, D, DChl, DFe, NO₃, NH₄, PO₄, Si, Si′))
+
 @inline uptake(phyto::NanoAndDiatoms, val_uptake_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     (uptake(phyto.nano, Val(:P), val_uptake_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
      + uptake(phyto.diatoms, Val(:D), val_uptake_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields))
