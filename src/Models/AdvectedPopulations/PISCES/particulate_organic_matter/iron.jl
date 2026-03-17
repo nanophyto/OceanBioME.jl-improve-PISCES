@@ -50,7 +50,7 @@ end
     aggregation_to_large_iron = aggregation_to_large * θS
 
     return (grazing_waste + phytoplankton_mortality + zooplankton_mortality + upper_trophic_feces
-            + scavenging + bacterial_assimilation + colloidal_aggregation + aggregation_to_large_iron,
+            + scavenging + bacterial_assimilation + colloidal_aggregation + aggregation_to_large_iron
             - grazing_iron - large_breakdown)
 end
 
