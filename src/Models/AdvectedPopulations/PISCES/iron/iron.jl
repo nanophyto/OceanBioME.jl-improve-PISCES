@@ -94,7 +94,7 @@ end
     scavenging = iron_scavenging(λFe, POC + GOC, Fe′)
     bacterial_uptake = bacterial_iron_uptake(pom, T, Fe, Bact, LBact)
 
-    ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, scavenging_rate)
+    ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, λFe)
 
     return (small_particle_iron_remineralisation + grazing_waste + upper_trophic_waste -
             phytoplankton_iron_uptake - ligand_aggregation_loss - colloidal_aggregation -
