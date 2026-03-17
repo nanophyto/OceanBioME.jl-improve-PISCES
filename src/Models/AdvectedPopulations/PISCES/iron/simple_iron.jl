@@ -47,7 +47,6 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
 
     z = znode(i, j, k, grid, Center(), Center(), Center())
     Si′ = @inbounds bgc.silicate_climatology[i, j, k]
-    ΔO₂ = anoxia_factor(bgc, O₂)
 
     sinking_flux = edible_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
     sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
@@ -77,7 +76,7 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
                          NO₃,
                          PO₄,
                          Si,
-                         ΔO₂,
+                         O₂,
                          z,
                          zₘₓₗ,
                          zₑᵤ,
@@ -85,7 +84,9 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
                          bgc.background_shear,
                          bgc.mixed_layer_shear,
                          sinking_flux,
-                         sinking_iron_flux)
+                         sinking_iron_flux,
+                         bgc.first_anoxia_threshold,
+                         bgc.second_anoxia_threshold)
 end
 
 @inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)

@@ -65,7 +65,7 @@ end
                                NO₃,
                                PO₄,
                                Si,
-                               ΔO₂,
+                               O₂,
                                z,
                                zₘₓₗ,
                                zₑᵤ,
@@ -73,7 +73,9 @@ end
                                background_shear,
                                mixed_layer_shear,
                                sinking_flux,
-                               sinking_iron_flux)
+                               sinking_iron_flux,
+                               first_anoxia_threshold,
+                               second_anoxia_threshold)
     λFe = iron_scavenging_rate(pom, POC, GOC, CaCO₃, PSi)
     Fe′ = free_iron(iron, Fe, DOC, T)
 
@@ -86,7 +88,10 @@ end
     Bact = bacteria_concentration(zoo, z, zₘₓₗ, zₑᵤ, Z, M)
     LBact = bacteria_activity(zoo, NH₄, NO₃, PO₄, Fe, DOC)
 
-    small_particle_iron_remineralisation = degradation(pom, Val(:SFe), specific_degradation_rate(pom, ΔO₂, T), SFe)
+    O₂_min_1 = first_anoxia_threshold
+    O₂_min_2 = second_anoxia_threshold
+    
+    small_particle_iron_remineralisation = degradation(pom, Val(:SFe), specific_degradation_rate(pom, O₂, T, O₂_min_1, O₂_min_2), SFe)
     grazing_waste = non_assimilated_iron(zoo, T, Z, M, food_availability, iron_availability, sinking_flux, sinking_iron_flux)
     upper_trophic_waste = upper_trophic_dissolved_iron(zoo, T, M)
     phytoplankton_iron_uptake = uptake(phyto, Val(:Fe), T, Fe, NO₃, NH₄, PO₄, Si, Si′, P, PChl, PFe, D, DChl, DFe)
