@@ -8,7 +8,7 @@ using Oceananigans.Grids: znode, Center
 using OceanBioME.Models.PISCESModel: PISCES, anoxia_factor
 
 using OceanBioME.Models.PISCESModel.DissolvedOrganicMatter: 
-    aggregation_of_colloidal_iron, degredation
+    aggregation_of_colloidal_iron, degradation
 
 using OceanBioME.Models.PISCESModel.ParticulateOrganicMatter: 
     iron_scavenging, iron_scavenging_rate, bacterial_iron_uptake,
