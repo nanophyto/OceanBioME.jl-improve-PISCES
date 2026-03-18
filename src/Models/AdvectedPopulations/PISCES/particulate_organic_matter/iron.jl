@@ -156,11 +156,17 @@ end
                                            large_breakdown)
 end
 
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:SFe}, degradation_rate, SFe) =
+    degradation_rate * SFe
+
+@inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:BFe}, degradation_rate, BFe) =
+    degradation_rate * BFe
+
 @inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:SFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
-    @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.SFe[i, j, k]
+    @inbounds degradation(poc, Val(:SFe), specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields), fields.SFe[i, j, k])
 
 @inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:BFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
-    @inbounds specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields) * fields.BFe[i, j, k]
+    @inbounds degradation(poc, Val(:BFe), specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields), fields.BFe[i, j, k])
 
 @inline function iron_scavenging_rate(pom::TwoCompartmentCarbonIronParticles, POC, GOC, CaCO₃, PSi)
     λ₀ = pom.minimum_iron_scavenging_rate
