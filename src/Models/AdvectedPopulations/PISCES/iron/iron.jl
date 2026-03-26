@@ -41,7 +41,14 @@ end
 end
 
 @inline function iron_tendency(iron::SimpleIron,
-                               pom,
+                               minimum_iron_scavenging_rate,
+                               load_specific_iron_scavenging_rate,
+                               base_breakdown_rate,
+                               particle_temperature_sensitivity,
+                               maximum_iron_ratio_in_bacteria,
+                               iron_half_saturation_for_bacteria,
+                               bacterial_iron_uptake_efficiency,
+                               maximum_bacterial_growth_rate,
                                dom,
                                phyto,
                                zoo,
@@ -76,7 +83,12 @@ end
                                sinking_iron_flux,
                                first_anoxia_threshold,
                                second_anoxia_threshold)
-    λFe = iron_scavenging_rate(pom, POC, GOC, CaCO₃, PSi)
+    λFe = iron_scavenging_rate(minimum_iron_scavenging_rate,
+                               load_specific_iron_scavenging_rate,
+                               POC,
+                               GOC,
+                               CaCO₃,
+                               PSi)
     Fe′ = free_iron(iron, Fe, DOC, T)
 
     food_availability = (; P, D, POC, Z)
@@ -91,13 +103,28 @@ end
     O₂_min_1 = first_anoxia_threshold
     O₂_min_2 = second_anoxia_threshold
     
-    small_particle_iron_remineralisation = degradation(pom, Val(:SFe), specific_degradation_rate(pom, O₂, T, O₂_min_1, O₂_min_2), SFe)
+    small_particle_iron_remineralisation = degradation(Val(:SFe),
+                                                        specific_degradation_rate(base_breakdown_rate,
+                                                                                  particle_temperature_sensitivity,
+                                                                                  O₂,
+                                                                                  T,
+                                                                                  O₂_min_1,
+                                                                                  O₂_min_2),
+                                                        SFe)
     grazing_waste = non_assimilated_iron(zoo, T, Z, M, food_availability, iron_availability, sinking_flux, sinking_iron_flux)
     upper_trophic_waste = upper_trophic_dissolved_iron(zoo, T, M)
     phytoplankton_iron_uptake = uptake(phyto, Val(:Fe), T, Fe, NO₃, NH₄, PO₄, Si, Si′, P, PChl, PFe, D, DChl, DFe)
     colloidal_aggregation, = aggregation_of_colloidal_iron(dom, background_shear, mixed_layer_shear, z, zₘₓₗ, Fe, Fe′, DOC, POC, GOC)
     scavenging = iron_scavenging(λFe, POC + GOC, Fe′)
-    bacterial_uptake = bacterial_iron_uptake(pom, T, Fe, Bact, LBact)
+    bacterial_uptake = bacterial_iron_uptake(maximum_bacterial_growth_rate,
+                                             particle_temperature_sensitivity,
+                                             maximum_iron_ratio_in_bacteria,
+                                             iron_half_saturation_for_bacteria,
+                                             bacterial_iron_uptake_efficiency,
+                                             T,
+                                             Fe,
+                                             Bact,
+                                             LBact)
 
     ligand_aggregation_loss = ligand_aggregation(iron, Fe, DOC, T, λFe)
 

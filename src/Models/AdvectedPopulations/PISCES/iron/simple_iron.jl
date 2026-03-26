@@ -51,8 +51,17 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     sinking_flux = edible_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
     sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
 
+    pom = bgc.particulate_organic_matter
+
     return iron_tendency(bgc.iron,
-                         bgc.particulate_organic_matter,
+                         pom.minimum_iron_scavenging_rate,
+                         pom.load_specific_iron_scavenging_rate,
+                         pom.base_breakdown_rate,
+                         pom.temperature_sensitivity,
+                         pom.maximum_iron_ratio_in_bacteria,
+                         pom.iron_half_saturation_for_bacteria,
+                         pom.bacterial_iron_uptake_efficiency,
+                         pom.maximum_bacterial_growth_rate,
                          bgc.dissolved_organic_matter,
                          bgc.phytoplankton,
                          bgc.zooplankton,

@@ -32,7 +32,7 @@ end
 value(field; indices = (1, 1, 1)) = on_architecture(CPU(), interior(field, indices...))[1]
 
 const PISCES_SCALAR_IRON_TEST_VALUES = merge(PISCES_INITIAL_VALUES, (;
-    ΔO₂ = 1.0,
+    O₂ = 1.0,
     z = -5.0,
     zₘₓₗ = -10.0,
     zₑᵤ = -10.0,
@@ -48,8 +48,17 @@ all_scalar_numbers(result::Tuple) = all(all_scalar_numbers, result)
 all_scalar_numbers(result) = false
 
 function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
+    pom = bgc.particulate_organic_matter
+
     return iron_tendency(bgc.iron,
-                         bgc.particulate_organic_matter,
+                         pom.minimum_iron_scavenging_rate,
+                         pom.load_specific_iron_scavenging_rate,
+                         pom.base_breakdown_rate,
+                         pom.temperature_sensitivity,
+                         pom.maximum_iron_ratio_in_bacteria,
+                         pom.iron_half_saturation_for_bacteria,
+                         pom.bacterial_iron_uptake_efficiency,
+                         pom.maximum_bacterial_growth_rate,
                          bgc.dissolved_organic_matter,
                          bgc.phytoplankton,
                          bgc.zooplankton,
@@ -73,7 +82,7 @@ function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
                          values.NO₃,
                          values.PO₄,
                          values.Si,
-                         values.ΔO₂,
+                         values.O₂,
                          values.z,
                          values.zₘₓₗ,
                          values.zₑᵤ,
@@ -81,7 +90,9 @@ function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
                          values.background_shear,
                          values.mixed_layer_shear,
                          values.sinking_flux,
-                         values.sinking_iron_flux)
+                         values.sinking_iron_flux,
+                         bgc.first_anoxia_threshold,
+                         bgc.second_anoxia_threshold)
 end
 
 scalar_iron_test_cases(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES) = (
@@ -99,7 +110,7 @@ function test_PISCES_scalar_iron_functions()
     bgc = (@test_warn validation_warning PISCES(; grid)).underlying_biogeochemistry
 
     for case in scalar_iron_test_cases(bgc)
-        @testset case.name begin
+        @testset "$(case.name)" begin
             result = case.call()
 
             @test all_scalar_numbers(result)
