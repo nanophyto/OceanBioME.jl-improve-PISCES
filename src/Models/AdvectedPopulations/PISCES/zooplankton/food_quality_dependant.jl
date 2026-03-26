@@ -123,6 +123,66 @@ end
 @inline extract_iron_availability(bgc, i, j, k, fields, names::NTuple{N}) where N =
     ntuple(n -> iron_ratio(Val(names[n]), i, j, k, bgc, fields), Val(N))
 
+@inline function grazing(maximum_grazing_rate,
+                                 temperature_sensitivity,
+                                 preference_for_p,
+                                 preference_for_d,
+                                 preference_for_z,
+                                 preference_for_poc,
+                                 specific_food_threshold_concentration,
+                                 grazing_half_saturation,
+                                 food_threshold_concentration,
+                                 iron_ratio,
+                                 minimum_growth_efficiency,
+                                 non_assimilated_fraction,
+                                 T,
+                                 I,
+                                 food_availability::NamedTuple,
+                                 iron_availability::NamedTuple)
+    g₀ = maximum_grazing_rate
+    b = temperature_sensitivity
+    J = specific_food_threshold_concentration
+    K = grazing_half_saturation
+
+    pP = preference_for_p
+    pD = preference_for_d
+    pZ = preference_for_z
+    pPOC = preference_for_poc
+
+    base_grazing_rate = g₀ * b ^ T
+
+    total_food = (food_availability.P   * pP +
+                  food_availability.D   * pD +
+                  food_availability.Z   * pZ +
+                  food_availability.POC * pPOC)
+
+    available_total_food = (max(zero(I), food_availability.P   - J) * pP +
+                            max(zero(I), food_availability.D   - J) * pD +
+                            max(zero(I), food_availability.Z   - J) * pZ +
+                            max(zero(I), food_availability.POC - J) * pPOC)
+
+    concentration_limited_grazing = max(zero(I), available_total_food - min(available_total_food / 2, food_threshold_concentration))
+
+    total_specific_grazing = base_grazing_rate * concentration_limited_grazing / (K + total_food)
+
+    θFe = iron_ratio
+    e₀ = minimum_growth_efficiency
+    σ = non_assimilated_fraction
+
+    total_iron = (iron_availability.P   * pP +
+                  iron_availability.D   * pD +
+                  iron_availability.Z   * pZ +
+                  iron_availability.POC * pPOC)
+
+    iron_grazing_ratio = total_iron / (θFe * total_specific_grazing + eps(zero(I)))
+
+    food_quality = min(one(I), iron_grazing_ratio)
+
+    growth_efficiency = food_quality * min(e₀, (one(I) - σ) * iron_grazing_ratio)
+
+    return total_specific_grazing * I, growth_efficiency
+end
+
 @inline function grazing(zoo::QualityDependantZooplankton, T, I, food_availability::NamedTuple, iron_availability::NamedTuple)
     g₀   = zoo.maximum_grazing_rate
     b    = zoo.temperature_sensitivity
@@ -204,15 +264,27 @@ end
     return total_specific_grazing * I, growth_efficiency
 end
 
-@inline function flux_feeding(zoo::QualityDependantZooplankton, T, I, sinking_flux)
-    g₀ =  zoo.maximum_flux_feeding_rate
-    b  = zoo.temperature_sensitivity
+@inline function flux_feeding(maximum_flux_feeding_rate,
+                              temperature_sensitivity,
+                              T,
+                              I,
+                              sinking_flux)
+    g₀ = maximum_flux_feeding_rate
+    b = temperature_sensitivity
 
     base_flux_feeding_rate = g₀ * b ^ T
 
-    total_specific_flux_feeding = base_flux_feeding_rate * sinking_flux 
+    total_specific_flux_feeding = base_flux_feeding_rate * sinking_flux
 
     return total_specific_flux_feeding * I
+end
+
+@inline function flux_feeding(zoo::QualityDependantZooplankton, T, I, sinking_flux)
+    return flux_feeding(zoo.maximum_flux_feeding_rate,
+                        zoo.temperature_sensitivity,
+                        T,
+                        I,
+                        sinking_flux)
 end
 
 @inline function flux_feeding(zoo::QualityDependantZooplankton, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)

@@ -15,14 +15,30 @@ end
     return γ * R
 end
 
-@inline function upper_trophic_dissolved_iron(zoo::QualityDependantZooplankton, T, I)
-    e₀ = zoo.minimum_growth_efficiency
-    σ  = zoo.non_assimilated_fraction
-    θ  = zoo.iron_ratio
-    b  = zoo.temperature_sensitivity
-    m₀ = zoo.quadratic_mortality
+@inline function upper_trophic_dissolved_iron(minimum_growth_efficiency,
+                                                non_assimilated_fraction,
+                                                iron_ratio,
+                                                temperature_sensitivity,
+                                                quadratic_mortality,
+                                                T,
+                                                I)
+    e₀ = minimum_growth_efficiency
+    σ = non_assimilated_fraction
+    θ = iron_ratio
+    b = temperature_sensitivity
+    m₀ = quadratic_mortality
 
     return θ * (one(I) - e₀ - σ) / (one(I) - e₀) * m₀ * b^T * I^2
+end
+
+@inline function upper_trophic_dissolved_iron(zoo::QualityDependantZooplankton, T, I)
+    return upper_trophic_dissolved_iron(zoo.minimum_growth_efficiency,
+                                        zoo.non_assimilated_fraction,
+                                        zoo.iron_ratio,
+                                        zoo.temperature_sensitivity,
+                                        zoo.quadratic_mortality,
+                                        T,
+                                        I)
 end
 
 @inline upper_trophic_dissolved_iron(zoo, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =

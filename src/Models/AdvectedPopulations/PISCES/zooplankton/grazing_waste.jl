@@ -42,6 +42,79 @@ end
     return σ * (gI + gfI)
 end
 
+@inline function non_assimilated_iron(iron_ratio,
+                                      non_assimilated_fraction,
+                                      maximum_grazing_rate,
+                                      temperature_sensitivity,
+                                      preference_for_p,
+                                      preference_for_d,
+                                      preference_for_z,
+                                      preference_for_poc,
+                                      specific_food_threshold_concentration,
+                                      grazing_half_saturation,
+                                      food_threshold_concentration,
+                                      minimum_growth_efficiency,
+                                      maximum_flux_feeding_rate,
+                                      T,
+                                      I,
+                                      food_availability::NamedTuple,
+                                      iron_availability::NamedTuple,
+                                      sinking_flux,
+                                      sinking_iron_flux)
+    θ = iron_ratio
+    σ = non_assimilated_fraction
+
+    gI, growth_efficiency = grazing(maximum_grazing_rate,
+                                    temperature_sensitivity,
+                                    preference_for_p,
+                                    preference_for_d,
+                                    preference_for_z,
+                                    preference_for_poc,
+                                    specific_food_threshold_concentration,
+                                    grazing_half_saturation,
+                                    food_threshold_concentration,
+                                    iron_ratio,
+                                    minimum_growth_efficiency,
+                                    non_assimilated_fraction,
+                                    T,
+                                    I,
+                                    food_availability,
+                                    iron_availability)
+    gfI = flux_feeding(maximum_flux_feeding_rate,
+                       temperature_sensitivity,
+                       T,
+                       I,
+                       sinking_flux)
+
+    zoo_assimilated_iron = θ * growth_efficiency * (gI + gfI)
+
+    gIFe = iron_grazing(maximum_grazing_rate,
+                        temperature_sensitivity,
+                        preference_for_p,
+                        preference_for_d,
+                        preference_for_z,
+                        preference_for_poc,
+                        specific_food_threshold_concentration,
+                        grazing_half_saturation,
+                        food_threshold_concentration,
+                        T,
+                        I,
+                        food_availability,
+                        iron_availability)
+
+    gfIFe = iron_flux_feeding(maximum_flux_feeding_rate,
+                              temperature_sensitivity,
+                              T,
+                              I,
+                              sinking_iron_flux)
+
+    lost_to_particles = σ * (gIFe + gfIFe)
+
+    total_iron_grazed = gIFe + gfIFe
+
+    return total_iron_grazed - lost_to_particles - zoo_assimilated_iron
+end
+
 @inline function non_assimilated_iron(zoo::QualityDependantZooplankton,
                                          T,
                                          I,
@@ -49,23 +122,25 @@ end
                                          iron_availability::NamedTuple,
                                          sinking_flux,
                                          sinking_iron_flux)
-    θ = zoo.iron_ratio
-    σ = zoo.non_assimilated_fraction
-
-    gI, growth_efficiency = grazing(zoo, T, I, food_availability, iron_availability)
-    gfI = flux_feeding(zoo, T, I, sinking_flux)
-
-    zoo_assimilated_iron = θ * growth_efficiency * (gI + gfI)
-
-    gIFe = iron_grazing(zoo, T, I, food_availability, iron_availability)
-
-    gfIFe = iron_flux_feeding(zoo, T, I, sinking_iron_flux)
-
-    lost_to_particles = σ * (gIFe + gfIFe)
-
-    total_iron_grazed = gIFe + gfIFe
-
-    return total_iron_grazed - lost_to_particles - zoo_assimilated_iron
+    return non_assimilated_iron(zoo.iron_ratio,
+                                zoo.non_assimilated_fraction,
+                                zoo.maximum_grazing_rate,
+                                zoo.temperature_sensitivity,
+                                zoo.food_preferences.P,
+                                zoo.food_preferences.D,
+                                zoo.food_preferences.Z,
+                                zoo.food_preferences.POC,
+                                zoo.specific_food_threshold_concentration,
+                                zoo.grazing_half_saturation,
+                                zoo.food_threshold_concentration,
+                                zoo.minimum_growth_efficiency,
+                                zoo.maximum_flux_feeding_rate,
+                                T,
+                                I,
+                                food_availability,
+                                iron_availability,
+                                sinking_flux,
+                                sinking_iron_flux)
 end
 
 @inline function non_assimilated_iron(zoo::QualityDependantZooplankton, val_name, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
