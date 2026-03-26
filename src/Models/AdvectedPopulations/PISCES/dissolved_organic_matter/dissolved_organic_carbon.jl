@@ -74,17 +74,34 @@ end
     return degradation(dom, T, DOC, Bact, LBact)
 end
 
-@inline function aggregation(dom::DissolvedOrganicCarbon, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
-    
+@inline function aggregation(aggregation_parameter_1,
+                             aggregation_parameter_2,
+                             aggregation_parameter_3,
+                             aggregation_parameter_4,
+                             aggregation_parameter_5,
+                             z,
+                             zₘₓₗ,
+                             background_shear,
+                             mixed_layer_shear,
+                             DOC,
+                             POC,
+                             GOC)
+
     shear = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
 
-    a₁, a₂, a₃, a₄, a₅ = dom.aggregation_parameters
-
-    Φ₁ = shear * (a₁ * DOC + a₂ * POC) * DOC
-    Φ₂ = shear * (a₃ * GOC) * DOC
-    Φ₃ = (a₄ * POC + a₅ * DOC) * DOC
+    Φ₁ = shear * (aggregation_parameter_1 * DOC + aggregation_parameter_2 * POC) * DOC
+    Φ₂ = shear * (aggregation_parameter_3 * GOC) * DOC
+    Φ₃ = (aggregation_parameter_4 * POC + aggregation_parameter_5 * DOC) * DOC
 
     return Φ₁ + Φ₂ + Φ₃, Φ₁, Φ₂, Φ₃
+end
+
+@inline function aggregation(dom::DissolvedOrganicCarbon, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
+    a₁, a₂, a₃, a₄, a₅ = dom.aggregation_parameters
+
+    return aggregation(a₁, a₂, a₃, a₄, a₅,
+                       z, zₘₓₗ, background_shear, mixed_layer_shear,
+                       DOC, POC, GOC)
 end
 
 @inline function aggregation(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
@@ -102,6 +119,41 @@ end
     return aggregation(dom, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
 end
 
+@inline function aggregation_of_colloidal_iron(aggregation_parameter_1,
+                                                aggregation_parameter_2,
+                                                aggregation_parameter_3,
+                                                aggregation_parameter_4,
+                                                aggregation_parameter_5,
+                                                background_shear,
+                                                mixed_layer_shear,
+                                                z,
+                                                zₘₓₗ,
+                                                Fe,
+                                                Fe′,
+                                                DOC,
+                                                POC,
+                                                GOC)
+
+    _, Φ₁, Φ₂, Φ₃ = aggregation(aggregation_parameter_1,
+                                aggregation_parameter_2,
+                                aggregation_parameter_3,
+                                aggregation_parameter_4,
+                                aggregation_parameter_5,
+                                z,
+                                zₘₓₗ,
+                                background_shear,
+                                mixed_layer_shear,
+                                DOC,
+                                POC,
+                                GOC)
+
+    colloidal_iron = 0.5 * (Fe - Fe′)
+    CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
+    CgFe2 = Φ₂ * colloidal_iron / (DOC + eps(0.0))
+
+    return CgFe1 + CgFe2, CgFe1, CgFe2
+end
+
 @inline function aggregation_of_colloidal_iron(dom::DissolvedOrganicCarbon,
                                                 background_shear,
                                                 mixed_layer_shear,
@@ -113,13 +165,18 @@ end
                                                 POC,
                                                 GOC)
 
-    _, Φ₁, Φ₂, Φ₃ = aggregation(dom, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
+    a₁, a₂, a₃, a₄, a₅ = dom.aggregation_parameters
 
-    colloidal_iron = 0.5 * (Fe - Fe′)
-    CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
-    CgFe2 = Φ₂ * colloidal_iron / (DOC + eps(0.0))
-
-    return CgFe1 + CgFe2, CgFe1, CgFe2
+    return aggregation_of_colloidal_iron(a₁, a₂, a₃, a₄, a₅,
+                                         background_shear,
+                                         mixed_layer_shear,
+                                         z,
+                                         zₘₓₗ,
+                                         Fe,
+                                         Fe′,
+                                         DOC,
+                                         POC,
+                                         GOC)
 end
 
 @inline function aggregation_of_colloidal_iron(dom::DissolvedOrganicCarbon, i, j, k, grid, bgc, clock, fields, auxiliary_fields)

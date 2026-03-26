@@ -49,7 +49,11 @@ end
                                iron_half_saturation_for_bacteria,
                                bacterial_iron_uptake_efficiency,
                                maximum_bacterial_growth_rate,
-                               dom,
+                               dissolved_organic_aggregation_parameter_1,
+                               dissolved_organic_aggregation_parameter_2,
+                               dissolved_organic_aggregation_parameter_3,
+                               dissolved_organic_aggregation_parameter_4,
+                               dissolved_organic_aggregation_parameter_5,
                                phyto,
                                zoo,
                                Fe,
@@ -114,7 +118,20 @@ end
     grazing_waste = non_assimilated_iron(zoo, T, Z, M, food_availability, iron_availability, sinking_flux, sinking_iron_flux)
     upper_trophic_waste = upper_trophic_dissolved_iron(zoo, T, M)
     phytoplankton_iron_uptake = uptake(phyto, Val(:Fe), T, Fe, NO₃, NH₄, PO₄, Si, Si′, P, PChl, PFe, D, DChl, DFe)
-    colloidal_aggregation, = aggregation_of_colloidal_iron(dom, background_shear, mixed_layer_shear, z, zₘₓₗ, Fe, Fe′, DOC, POC, GOC)
+    colloidal_aggregation, = aggregation_of_colloidal_iron(dissolved_organic_aggregation_parameter_1,
+                                                           dissolved_organic_aggregation_parameter_2,
+                                                           dissolved_organic_aggregation_parameter_3,
+                                                           dissolved_organic_aggregation_parameter_4,
+                                                           dissolved_organic_aggregation_parameter_5,
+                                                           background_shear,
+                                                           mixed_layer_shear,
+                                                           z,
+                                                           zₘₓₗ,
+                                                           Fe,
+                                                           Fe′,
+                                                           DOC,
+                                                           POC,
+                                                           GOC)
     scavenging = iron_scavenging(λFe, POC + GOC, Fe′)
     bacterial_uptake = bacterial_iron_uptake(maximum_bacterial_growth_rate,
                                              particle_temperature_sensitivity,

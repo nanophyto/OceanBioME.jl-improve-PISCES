@@ -49,6 +49,12 @@ all_scalar_numbers(result) = false
 
 function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
     pom = bgc.particulate_organic_matter
+    dom = bgc.dissolved_organic_matter
+    (aggregation_parameter_1,
+     aggregation_parameter_2,
+     aggregation_parameter_3,
+     aggregation_parameter_4,
+     aggregation_parameter_5) = dom.aggregation_parameters
 
     return iron_tendency(bgc.iron,
                          pom.minimum_iron_scavenging_rate,
@@ -59,7 +65,11 @@ function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
                          pom.iron_half_saturation_for_bacteria,
                          pom.bacterial_iron_uptake_efficiency,
                          pom.maximum_bacterial_growth_rate,
-                         bgc.dissolved_organic_matter,
+                         aggregation_parameter_1,
+                         aggregation_parameter_2,
+                         aggregation_parameter_3,
+                         aggregation_parameter_4,
+                         aggregation_parameter_5,
                          bgc.phytoplankton,
                          bgc.zooplankton,
                          values.Fe,

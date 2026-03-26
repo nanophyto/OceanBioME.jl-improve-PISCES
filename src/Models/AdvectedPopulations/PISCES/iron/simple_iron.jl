@@ -52,6 +52,12 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
 
     pom = bgc.particulate_organic_matter
+    dom = bgc.dissolved_organic_matter
+    (aggregation_parameter_1,
+     aggregation_parameter_2,
+     aggregation_parameter_3,
+     aggregation_parameter_4,
+     aggregation_parameter_5) = dom.aggregation_parameters
 
     return iron_tendency(bgc.iron,
                          pom.minimum_iron_scavenging_rate,
@@ -62,7 +68,11 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
                          pom.iron_half_saturation_for_bacteria,
                          pom.bacterial_iron_uptake_efficiency,
                          pom.maximum_bacterial_growth_rate,
-                         bgc.dissolved_organic_matter,
+                         aggregation_parameter_1,
+                         aggregation_parameter_2,
+                         aggregation_parameter_3,
+                         aggregation_parameter_4,
+                         aggregation_parameter_5,
                          bgc.phytoplankton,
                          bgc.zooplankton,
                          Fe,
