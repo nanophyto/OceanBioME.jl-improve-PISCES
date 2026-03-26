@@ -54,6 +54,15 @@ end
                                dissolved_organic_aggregation_parameter_3,
                                dissolved_organic_aggregation_parameter_4,
                                dissolved_organic_aggregation_parameter_5,
+                               microzooplankton_bacteria_concentration,
+                               mesozooplankton_bacteria_concentration,
+                               maximum_bacteria_concentration,
+                               bacteria_concentration_depth_exponent,
+                               doc_half_saturation_for_bacterial_activity,
+                               nitrate_half_saturation_for_bacterial_activity,
+                               ammonia_half_saturation_for_bacterial_activity,
+                               phosphate_half_saturation_for_bacterial_activity,
+                               iron_half_saturation_for_bacterial_activity,
                                phyto,
                                zoo,
                                Fe,
@@ -101,8 +110,25 @@ end
                            POC = SFe / (POC + eps(zero(POC))),
                            Z = zoo.micro.iron_ratio)
 
-    Bact = bacteria_concentration(zoo, z, zₘₓₗ, zₑᵤ, Z, M)
-    LBact = bacteria_activity(zoo, NH₄, NO₃, PO₄, Fe, DOC)
+    Bact = bacteria_concentration(microzooplankton_bacteria_concentration,
+                                 mesozooplankton_bacteria_concentration,
+                                 maximum_bacteria_concentration,
+                                 bacteria_concentration_depth_exponent,
+                                 z,
+                                 zₘₓₗ,
+                                 zₑᵤ,
+                                 Z,
+                                 M)
+    LBact = bacteria_activity(doc_half_saturation_for_bacterial_activity,
+                              nitrate_half_saturation_for_bacterial_activity,
+                              ammonia_half_saturation_for_bacterial_activity,
+                              phosphate_half_saturation_for_bacterial_activity,
+                              iron_half_saturation_for_bacterial_activity,
+                              NH₄,
+                              NO₃,
+                              PO₄,
+                              Fe,
+                              DOC)
 
     O₂_min_1 = first_anoxia_threshold
     O₂_min_2 = second_anoxia_threshold

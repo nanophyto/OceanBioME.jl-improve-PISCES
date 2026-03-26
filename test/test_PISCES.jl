@@ -56,6 +56,8 @@ function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
      aggregation_parameter_4,
      aggregation_parameter_5) = dom.aggregation_parameters
 
+    zoo = bgc.zooplankton
+
     return iron_tendency(bgc.iron,
                          pom.minimum_iron_scavenging_rate,
                          pom.load_specific_iron_scavenging_rate,
@@ -70,8 +72,17 @@ function scalar_iron_tendency(bgc; values = PISCES_SCALAR_IRON_TEST_VALUES)
                          aggregation_parameter_3,
                          aggregation_parameter_4,
                          aggregation_parameter_5,
+                         zoo.microzooplankton_bacteria_concentration,
+                         zoo.mesozooplankton_bacteria_concentration,
+                         zoo.maximum_bacteria_concentration,
+                         zoo.bacteria_concentration_depth_exponent,
+                         zoo.doc_half_saturation_for_bacterial_activity,
+                         zoo.nitrate_half_saturation_for_bacterial_activity,
+                         zoo.ammonia_half_saturation_for_bacterial_activity,
+                         zoo.phosphate_half_saturation_for_bacterial_activity,
+                         zoo.iron_half_saturation_for_bacterial_activity,
                          bgc.phytoplankton,
-                         bgc.zooplankton,
+                         zoo,
                          values.Fe,
                          values.DOC,
                          values.T,
