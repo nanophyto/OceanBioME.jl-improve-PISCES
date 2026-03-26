@@ -59,6 +59,9 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
      aggregation_parameter_4,
      aggregation_parameter_5) = dom.aggregation_parameters
 
+    phyto = bgc.phytoplankton
+    nano = phyto.nano
+    diatoms = phyto.diatoms
     zoo = bgc.zooplankton
 
     return iron_tendency(bgc.iron,
@@ -84,7 +87,26 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
                          zoo.ammonia_half_saturation_for_bacterial_activity,
                          zoo.phosphate_half_saturation_for_bacterial_activity,
                          zoo.iron_half_saturation_for_bacterial_activity,
-                         bgc.phytoplankton,
+                         nano.exudated_fraction,
+                         nano.maximum_iron_ratio,
+                         nano.half_saturation_for_iron_uptake,
+                         nano.threshold_for_size_dependency,
+                         nano.size_ratio,
+                         nano.nutrient_limitation.minimum_ammonium_half_saturation,
+                         nano.nutrient_limitation.minimum_nitrate_half_saturation,
+                         nano.nutrient_limitation.optimal_iron_quota,
+                         nano.growth_rate.base_growth_rate,
+                         nano.growth_rate.temperature_sensitivity,
+                         diatoms.exudated_fraction,
+                         diatoms.maximum_iron_ratio,
+                         diatoms.half_saturation_for_iron_uptake,
+                         diatoms.threshold_for_size_dependency,
+                         diatoms.size_ratio,
+                         diatoms.nutrient_limitation.minimum_ammonium_half_saturation,
+                         diatoms.nutrient_limitation.minimum_nitrate_half_saturation,
+                         diatoms.nutrient_limitation.optimal_iron_quota,
+                         diatoms.growth_rate.base_growth_rate,
+                         diatoms.growth_rate.temperature_sensitivity,
                          zoo,
                          Fe,
                          DOC,
