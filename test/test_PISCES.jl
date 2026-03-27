@@ -14,8 +14,8 @@ const PISCES_INITIAL_VALUES = (P = 0.5, PChl = 0.02, PFe = 0.005,
                                POC = 7.8, SFe = 0.206,
                                GOC = 38, BFe = 1.1, PSi = 0.1, CaCO₃ = 10^-10,
                                NO₃ = 2.3, NH₄ = 0.9, PO₄ = 0.6, Fe = 0.13, Si = 8.5,
-                               DIC = 2205, Alk = 2566, O₂ = 317,
-                               T = 10, S = 35)
+                               DIC = 2205.0, Alk = 2566.0, O₂ = 317.0,
+                               T = 10.0, S = 35.0)
 
 function set_PISCES_initial_values!(tracers; values = PISCES_INITIAL_VALUES)
     for (name, field) in pairs(tracers)
