@@ -200,15 +200,15 @@ function test_PISCES_conservation() # only on CPU please
 
     grid = BoxModelGrid(; z = -5)
 
-    PAR₁ = ConstantField(100)
-    PAR₂ = ConstantField(100)
-    PAR₃ = ConstantField(100)
-    PAR  = ConstantField(300)
+    PAR₁ = ConstantField(100.0)
+    PAR₂ = ConstantField(100.0)
+    PAR₃ = ConstantField(100.0)
+    PAR  = ConstantField(300.0)
 
     mixed_layer_depth = ConstantField(-10.0)
     euphotic_depth  = ConstantField(-10.0)
-    mean_mixed_layer_vertical_diffusivity = ConstantField(1)
-    mean_mixed_layer_light = ConstantField(300)
+    mean_mixed_layer_vertical_diffusivity = ConstantField(1.0)
+    mean_mixed_layer_light = ConstantField(300.0)
 
     light_attenuation = PrescribedPhotosyntheticallyActiveRadiation((; PAR, PAR₁, PAR₂, PAR₃))
 
