@@ -1,25 +1,16 @@
-@inline function iron_grazing(maximum_grazing_rate,
-                               temperature_sensitivity,
-                               preference_for_p,
-                               preference_for_d,
-                               preference_for_z,
-                               preference_for_poc,
-                               specific_food_threshold_concentration,
-                               grazing_half_saturation,
+@inline function iron_grazing(g₀,
+                               b,
+                               pP,
+                               pD,
+                               pZ,
+                               pPOC,
+                               J,
+                               K,
                                food_threshold_concentration,
                                T,
                                I,
                                food_availability::NamedTuple,
                                iron_availability::NamedTuple)
-    g₀ = maximum_grazing_rate
-    b = temperature_sensitivity
-    J = specific_food_threshold_concentration
-    K = grazing_half_saturation
-
-    pP = preference_for_p
-    pD = preference_for_d
-    pZ = preference_for_z
-    pPOC = preference_for_poc
 
     base_grazing_rate = g₀ * b ^ T
 

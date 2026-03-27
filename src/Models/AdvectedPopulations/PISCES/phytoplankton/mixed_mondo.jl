@@ -174,16 +174,16 @@ end
     return phyto.growth_rate(val_name, i, j, k, grid, bgc, phyto, clock, fields, auxiliary_fields, L) * I
 end
 
-@inline function iron_uptake(exudated_fraction,
-                             maximum_iron_ratio,
-                             half_saturation_for_iron_uptake,
-                             threshold_for_size_dependency,
-                             size_ratio,
-                             minimum_ammonium_half_saturation,
-                             minimum_nitrate_half_saturation,
-                             optimal_iron_quota,
-                             base_growth_rate,
-                             temperature_sensitivity,
+@inline function iron_uptake(δ,
+                             θFeₘ,
+                             k,
+                             Iₘ,
+                             S,
+                             Kₙₕᵐᵢₙ,
+                             Kₙₒᵐᵢₙ,
+                             θFeᵒ,
+                             μ₀,
+                             bₜ,
                              T,
                              Fe,
                              I,
@@ -191,16 +191,14 @@ end
                              IFe,
                              NO₃,
                              NH₄)
-    δ = exudated_fraction
-    θFeₘ = maximum_iron_ratio
 
     θFe = IFe / (I + eps(0.0))
     θChl = ifelse(I == 0, 0, IChl / (12 * I + eps(0.0)))
 
-    K̄ = size_factor(threshold_for_size_dependency, size_ratio, I)
+    K̄ = size_factor(Iₘ, S, I)
 
-    Kₙₒ = minimum_nitrate_half_saturation * K̄
-    Kₙₕ = minimum_ammonium_half_saturation * K̄
+    Kₙₒ = Kₙₒᵐᵢₙ * K̄
+    Kₙₕ = Kₙₕᵐᵢₙ * K̄
 
     LNO₃ = nitrogen_limitation(NO₃, NH₄, Kₙₒ, Kₙₕ)
     LNH₄ = nitrogen_limitation(NH₄, NO₃, Kₙₕ, Kₙₒ)
@@ -211,13 +209,13 @@ end
                  1.5 * 1.21e-5 * 14 / (55.85 * 7.625) * LN +
                  1.15e-4 * 14 / (55.85 * 7.625) * LNO₃)
 
-    LFe = min(1, max(0, (θFe - θₘ) / optimal_iron_quota))
+    LFe = min(1, max(0, (θFe - θₘ) / θFeᵒ))
 
-    μᵢ = base_production_rate(base_growth_rate, temperature_sensitivity, T)
+    μᵢ = base_production_rate(μ₀, bₜ, T)
 
-    L₁ = iron_uptake_limitation(half_saturation_for_iron_uptake,
-                                threshold_for_size_dependency,
-                                size_ratio,
+    L₁ = iron_uptake_limitation(k,
+                                Iₘ,
+                                S,
                                 I,
                                 Fe)
 
@@ -260,14 +258,12 @@ end
     return iron_uptake(phyto, T, Fe, I, IChl, IFe, NO₃, NH₄, PO₄, Si, Si′)
 end
 
-@inline function iron_uptake_limitation(half_saturation_for_iron_uptake,
-                                         threshold_for_size_dependency,
-                                         size_ratio,
+@inline function iron_uptake_limitation(k,
+                                         Iₘ,
+                                         S,
                                          I,
                                          Fe)
-    k = half_saturation_for_iron_uptake
-
-    K = k * size_factor(threshold_for_size_dependency, size_ratio, I)
+    K = k * size_factor(Iₘ, S, I)
 
     return Fe / (Fe + K + eps(0.0))
 end
@@ -279,9 +275,7 @@ end
                            I,
                            Fe)
 
-@inline function size_factor(threshold_for_size_dependency, size_ratio, I)
-    Iₘ = threshold_for_size_dependency
-    S = size_ratio
+@inline function size_factor(Iₘ, S, I)
 
     I₁ = min(I, Iₘ)
     I₂ = max(0, I - Iₘ)

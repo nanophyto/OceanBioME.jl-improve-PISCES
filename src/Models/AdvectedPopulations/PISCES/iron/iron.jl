@@ -33,11 +33,11 @@ include("simple_iron.jl")
 end
 
 @inline function ligand_aggregation(iron::SimpleIron, Fe, DOC, T, scavenging_rate)
-    total_ligand_concentration = ligand_concentration(iron, DOC)
-    free_iron_concentration = free_iron(iron, Fe, DOC, T)
-    excess_iron = max(zero(Fe), Fe - total_ligand_concentration)
+    Lₜ = ligand_concentration(iron, DOC)
+    Fe′ = free_iron(iron, Fe, DOC, T)
+    ΔFe = max(zero(Fe), Fe - Lₜ)
 
-    return iron.excess_scavenging_enhancement * scavenging_rate * excess_iron * free_iron_concentration
+    return iron.excess_scavenging_enhancement * scavenging_rate * ΔFe * Fe′
 end
 
 @inline function free_iron(::SimpleIron, Fe, DOC, T)

@@ -166,22 +166,19 @@ end
 @inline upper_trophic_fecal_iron_production(zoo::MicroAndMeso, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     upper_trophic_fecal_iron_production(zoo.meso, Val(:M), i, j, k, grid, bgc, clock, fields, auxiliary_fields)
 
-@inline function bacteria_concentration(microzooplankton_bacteria_concentration,
-                                         mesozooplankton_bacteria_concentration,
-                                         maximum_bacteria_concentration,
-                                         bacteria_concentration_depth_exponent,
+@inline function bacteria_concentration(bZ,
+                                         bM,
+                                         Bₘₐₓ,
+                                         a,
                                          z,
                                          zₘₓₗ,
                                          zₑᵤ,
                                          Z,
                                          M)
-    bZ = microzooplankton_bacteria_concentration
-    bM = mesozooplankton_bacteria_concentration
-    a  = bacteria_concentration_depth_exponent
 
     zₘ = min(zₘₓₗ, zₑᵤ)
 
-    surface_bacteria = min(maximum_bacteria_concentration, bZ * Z + bM * M)
+    surface_bacteria = min(Bₘₐₓ, bZ * Z + bM * M)
 
     depth_factor = (zₘ / z) ^ a
 
@@ -212,21 +209,16 @@ end
     return bacteria_concentration(zoo, z, zₘₓₗ, zₑᵤ, Z, M)
 end
 
-@inline function bacteria_activity(doc_half_saturation_for_bacterial_activity,
-                                    nitrate_half_saturation_for_bacterial_activity,
-                                    ammonia_half_saturation_for_bacterial_activity,
-                                    phosphate_half_saturation_for_bacterial_activity,
-                                    iron_half_saturation_for_bacterial_activity,
+@inline function bacteria_activity(K_DOC,
+                                    K_NO₃,
+                                    K_NH₄,
+                                    K_PO₄,
+                                    K_Fe,
                                     NH₄,
                                     NO₃,
                                     PO₄,
                                     Fe,
                                     DOC)
-    K_DOC = doc_half_saturation_for_bacterial_activity
-    K_NO₃ = nitrate_half_saturation_for_bacterial_activity
-    K_NH₄ = ammonia_half_saturation_for_bacterial_activity
-    K_PO₄ = phosphate_half_saturation_for_bacterial_activity
-    K_Fe  = iron_half_saturation_for_bacterial_activity
 
     DOC_limit = DOC / (DOC + K_DOC)
 

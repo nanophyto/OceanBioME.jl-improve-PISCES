@@ -74,11 +74,11 @@ end
     return degradation(dom, T, DOC, Bact, LBact)
 end
 
-@inline function aggregation(aggregation_parameter_1,
-                             aggregation_parameter_2,
-                             aggregation_parameter_3,
-                             aggregation_parameter_4,
-                             aggregation_parameter_5,
+@inline function aggregation(a₁,
+                             a₂,
+                             a₃,
+                             a₄,
+                             a₅,
                              z,
                              zₘₓₗ,
                              background_shear,
@@ -89,9 +89,9 @@ end
 
     shear = ifelse(z < zₘₓₗ, background_shear, mixed_layer_shear)
 
-    Φ₁ = shear * (aggregation_parameter_1 * DOC + aggregation_parameter_2 * POC) * DOC
-    Φ₂ = shear * (aggregation_parameter_3 * GOC) * DOC
-    Φ₃ = (aggregation_parameter_4 * POC + aggregation_parameter_5 * DOC) * DOC
+    Φ₁ = shear * (a₁ * DOC + a₂ * POC) * DOC
+    Φ₂ = shear * (a₃ * GOC) * DOC
+    Φ₃ = (a₄ * POC + a₅ * DOC) * DOC
 
     return Φ₁ + Φ₂ + Φ₃, Φ₁, Φ₂, Φ₃
 end
@@ -119,11 +119,11 @@ end
     return aggregation(dom, z, zₘₓₗ, background_shear, mixed_layer_shear, DOC, POC, GOC)
 end
 
-@inline function aggregation_of_colloidal_iron(aggregation_parameter_1,
-                                                aggregation_parameter_2,
-                                                aggregation_parameter_3,
-                                                aggregation_parameter_4,
-                                                aggregation_parameter_5,
+@inline function aggregation_of_colloidal_iron(a₁,
+                                                a₂,
+                                                a₃,
+                                                a₄,
+                                                a₅,
                                                 background_shear,
                                                 mixed_layer_shear,
                                                 z,
@@ -134,11 +134,11 @@ end
                                                 POC,
                                                 GOC)
 
-    _, Φ₁, Φ₂, Φ₃ = aggregation(aggregation_parameter_1,
-                                aggregation_parameter_2,
-                                aggregation_parameter_3,
-                                aggregation_parameter_4,
-                                aggregation_parameter_5,
+    _, Φ₁, Φ₂, Φ₃ = aggregation(a₁,
+                                a₂,
+                                a₃,
+                                a₄,
+                                a₅,
                                 z,
                                 zₘₓₗ,
                                 background_shear,
@@ -147,7 +147,8 @@ end
                                 POC,
                                 GOC)
 
-    colloidal_iron = 0.5 * (Fe - Fe′)
+    ligand_iron = Fe - Fe′
+    colloidal_iron = 0.5 * ligand_iron
     CgFe1 = (Φ₁ + Φ₃) * colloidal_iron / (DOC + eps(0.0))
     CgFe2 = Φ₂ * colloidal_iron / (DOC + eps(0.0))
 

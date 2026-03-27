@@ -123,31 +123,22 @@ end
 @inline extract_iron_availability(bgc, i, j, k, fields, names::NTuple{N}) where N =
     ntuple(n -> iron_ratio(Val(names[n]), i, j, k, bgc, fields), Val(N))
 
-@inline function grazing(maximum_grazing_rate,
-                                 temperature_sensitivity,
-                                 preference_for_p,
-                                 preference_for_d,
-                                 preference_for_z,
-                                 preference_for_poc,
-                                 specific_food_threshold_concentration,
-                                 grazing_half_saturation,
+@inline function grazing(g₀,
+                                 b,
+                                 pP,
+                                 pD,
+                                 pZ,
+                                 pPOC,
+                                 J,
+                                 K,
                                  food_threshold_concentration,
-                                 iron_ratio,
-                                 minimum_growth_efficiency,
-                                 non_assimilated_fraction,
+                                 θFe,
+                                 e₀,
+                                 σ,
                                  T,
                                  I,
                                  food_availability::NamedTuple,
                                  iron_availability::NamedTuple)
-    g₀ = maximum_grazing_rate
-    b = temperature_sensitivity
-    J = specific_food_threshold_concentration
-    K = grazing_half_saturation
-
-    pP = preference_for_p
-    pD = preference_for_d
-    pZ = preference_for_z
-    pPOC = preference_for_poc
 
     base_grazing_rate = g₀ * b ^ T
 
@@ -164,10 +155,6 @@ end
     concentration_limited_grazing = max(zero(I), available_total_food - min(available_total_food / 2, food_threshold_concentration))
 
     total_specific_grazing = base_grazing_rate * concentration_limited_grazing / (K + total_food)
-
-    θFe = iron_ratio
-    e₀ = minimum_growth_efficiency
-    σ = non_assimilated_fraction
 
     total_iron = (iron_availability.P   * pP +
                   iron_availability.D   * pD +
@@ -264,13 +251,11 @@ end
     return total_specific_grazing * I, growth_efficiency
 end
 
-@inline function flux_feeding(maximum_flux_feeding_rate,
-                              temperature_sensitivity,
+@inline function flux_feeding(g₀,
+                              b,
                               T,
                               I,
                               sinking_flux)
-    g₀ = maximum_flux_feeding_rate
-    b = temperature_sensitivity
 
     base_flux_feeding_rate = g₀ * b ^ T
 

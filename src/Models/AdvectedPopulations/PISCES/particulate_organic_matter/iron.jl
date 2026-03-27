@@ -174,13 +174,13 @@ end
 @inline degradation(poc::TwoCompartmentCarbonIronParticles, ::Val{:BFe}, i, j, k, grid, bgc, clock, fields, auxiliary_fields) =
     @inbounds degradation(poc, Val(:BFe), specific_degradation_rate(poc, i, j, k, grid, bgc, clock, fields, auxiliary_fields), fields.BFe[i, j, k])
 
-@inline iron_scavenging_rate(minimum_iron_scavenging_rate,
-                                     load_specific_iron_scavenging_rate,
+@inline iron_scavenging_rate(λ₀,
+                                     λ₁,
                                      POC,
                                      GOC,
                                      CaCO₃,
                                      PSi) =
-    minimum_iron_scavenging_rate + load_specific_iron_scavenging_rate * (POC + GOC + CaCO₃ + PSi)
+    λ₀ + λ₁ * (POC + GOC + CaCO₃ + PSi)
 
 @inline function iron_scavenging_rate(pom::TwoCompartmentCarbonIronParticles, POC, GOC, CaCO₃, PSi)
     return iron_scavenging_rate(pom.minimum_iron_scavenging_rate,
@@ -200,18 +200,18 @@ end
     return iron_scavenging_rate(pom, POC, GOC, CaCO₃, PSi)
 end
 
-@inline function bacterial_iron_uptake(maximum_bacterial_growth_rate,
-                                       temperature_sensitivity,
-                                       maximum_iron_ratio_in_bacteria,
-                                       iron_half_saturation_for_bacteria,
-                                       bacterial_iron_uptake_efficiency,
+@inline function bacterial_iron_uptake(μ₀,
+                                       b,
+                                       θ,
+                                       K,
+                                       κ,
                                        T,
                                        Fe,
                                        Bact,
                                        LBact)
-    μ = maximum_bacterial_growth_rate * temperature_sensitivity^T
+    μ = μ₀ * b^T
 
-    return μ * LBact * maximum_iron_ratio_in_bacteria * Fe / (Fe + iron_half_saturation_for_bacteria) * Bact * bacterial_iron_uptake_efficiency
+    return μ * LBact * θ * Fe / (Fe + K) * Bact * κ
 end
 
 @inline function bacterial_iron_uptake(poc::TwoCompartmentCarbonIronParticles, T, Fe, Bact, LBact)

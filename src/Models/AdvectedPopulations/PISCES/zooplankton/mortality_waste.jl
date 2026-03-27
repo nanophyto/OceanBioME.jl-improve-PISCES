@@ -15,18 +15,13 @@ end
     return γ * R
 end
 
-@inline function upper_trophic_dissolved_iron(minimum_growth_efficiency,
-                                                non_assimilated_fraction,
-                                                iron_ratio,
-                                                temperature_sensitivity,
-                                                quadratic_mortality,
+@inline function upper_trophic_dissolved_iron(e₀,
+                                                σ,
+                                                θ,
+                                                b,
+                                                m₀,
                                                 T,
                                                 I)
-    e₀ = minimum_growth_efficiency
-    σ = non_assimilated_fraction
-    θ = iron_ratio
-    b = temperature_sensitivity
-    m₀ = quadratic_mortality
 
     return θ * (one(I) - e₀ - σ) / (one(I) - e₀) * m₀ * b^T * I^2
 end

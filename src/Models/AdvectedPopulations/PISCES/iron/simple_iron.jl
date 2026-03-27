@@ -117,8 +117,36 @@ end
 
 
 @inline function iron_tendency(iron::SimpleIron, args::IronTendencyArgs)
-    λFe = iron_scavenging_rate(args.minimum_iron_scavenging_rate,
-                               args.load_specific_iron_scavenging_rate,
+    λ₀ = args.minimum_iron_scavenging_rate
+    λ₁ = args.load_specific_iron_scavenging_rate
+    λ₀ₚ = args.base_breakdown_rate
+    bₚ = args.particle_temperature_sensitivity
+    O₂ₘᵢₙ₁ = args.first_anoxia_threshold
+    O₂ₘᵢₙ₂ = args.second_anoxia_threshold
+
+    θᵦ = args.maximum_iron_ratio_in_bacteria
+    Kᵦ = args.iron_half_saturation_for_bacteria
+    κᵦ = args.bacterial_iron_uptake_efficiency
+    μ₀ᵦ = args.maximum_bacterial_growth_rate
+
+    a₁ = args.dissolved_organic_aggregation_parameter_1
+    a₂ = args.dissolved_organic_aggregation_parameter_2
+    a₃ = args.dissolved_organic_aggregation_parameter_3
+    a₄ = args.dissolved_organic_aggregation_parameter_4
+    a₅ = args.dissolved_organic_aggregation_parameter_5
+
+    bZ = args.microzooplankton_bacteria_concentration
+    bM = args.mesozooplankton_bacteria_concentration
+    Bₘₐₓ = args.maximum_bacteria_concentration
+    a = args.bacteria_concentration_depth_exponent
+    K_DOC = args.doc_half_saturation_for_bacterial_activity
+    K_NO₃ = args.nitrate_half_saturation_for_bacterial_activity
+    K_NH₄ = args.ammonia_half_saturation_for_bacterial_activity
+    K_PO₄ = args.phosphate_half_saturation_for_bacterial_activity
+    K_Fe = args.iron_half_saturation_for_bacterial_activity
+
+    λFe = iron_scavenging_rate(λ₀,
+                               λ₁,
                                args.POC,
                                args.GOC,
                                args.CaCO₃,
@@ -134,20 +162,20 @@ end
                            POC = args.SFe / (args.POC + eps(zero(args.POC))),
                            Z = args.microzooplankton_iron_ratio)
 
-    Bact = bacteria_concentration(args.microzooplankton_bacteria_concentration,
-                                  args.mesozooplankton_bacteria_concentration,
-                                  args.maximum_bacteria_concentration,
-                                  args.bacteria_concentration_depth_exponent,
+    Bact = bacteria_concentration(bZ,
+                                  bM,
+                                  Bₘₐₓ,
+                                  a,
                                   args.z,
                                   args.zₘₓₗ,
                                   args.zₑᵤ,
                                   args.Z,
                                   args.M)
-    LBact = bacteria_activity(args.doc_half_saturation_for_bacterial_activity,
-                              args.nitrate_half_saturation_for_bacterial_activity,
-                              args.ammonia_half_saturation_for_bacterial_activity,
-                              args.phosphate_half_saturation_for_bacterial_activity,
-                              args.iron_half_saturation_for_bacterial_activity,
+    LBact = bacteria_activity(K_DOC,
+                              K_NO₃,
+                              K_NH₄,
+                              K_PO₄,
+                              K_Fe,
                               args.NH₄,
                               args.NO₃,
                               args.PO₄,
@@ -155,12 +183,12 @@ end
                               args.DOC)
 
     small_particle_iron_remineralisation = degradation(Val(:SFe),
-                                                       specific_degradation_rate(args.base_breakdown_rate,
-                                                                                 args.particle_temperature_sensitivity,
+                                                       specific_degradation_rate(λ₀ₚ,
+                                                                                 bₚ,
                                                                                  args.O₂,
                                                                                  args.T,
-                                                                                 args.first_anoxia_threshold,
-                                                                                 args.second_anoxia_threshold),
+                                                                                 O₂ₘᵢₙ₁,
+                                                                                 O₂ₘᵢₙ₂),
                                                        args.SFe)
     grazing_waste = non_assimilated_iron(args.microzooplankton_iron_ratio,
                                          args.microzooplankton_non_assimilated_fraction,
@@ -236,11 +264,11 @@ end
                                        args.D,
                                        args.DChl,
                                        args.DFe)
-    colloidal_aggregation, = aggregation_of_colloidal_iron(args.dissolved_organic_aggregation_parameter_1,
-                                                           args.dissolved_organic_aggregation_parameter_2,
-                                                           args.dissolved_organic_aggregation_parameter_3,
-                                                           args.dissolved_organic_aggregation_parameter_4,
-                                                           args.dissolved_organic_aggregation_parameter_5,
+    colloidal_aggregation, = aggregation_of_colloidal_iron(a₁,
+                                                           a₂,
+                                                           a₃,
+                                                           a₄,
+                                                           a₅,
                                                            args.background_shear,
                                                            args.mixed_layer_shear,
                                                            args.z,
@@ -251,11 +279,11 @@ end
                                                            args.POC,
                                                            args.GOC)
     scavenging = iron_scavenging(λFe, args.POC + args.GOC, Fe′)
-    bacterial_uptake = bacterial_iron_uptake(args.maximum_bacterial_growth_rate,
-                                             args.particle_temperature_sensitivity,
-                                             args.maximum_iron_ratio_in_bacteria,
-                                             args.iron_half_saturation_for_bacteria,
-                                             args.bacterial_iron_uptake_efficiency,
+    bacterial_uptake = bacterial_iron_uptake(μ₀ᵦ,
+                                             bₚ,
+                                             θᵦ,
+                                             Kᵦ,
+                                             κᵦ,
                                              args.T,
                                              args.Fe,
                                              Bact,
@@ -308,11 +336,11 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
 
     pom = bgc.particulate_organic_matter
-    (aggregation_parameter_1,
-     aggregation_parameter_2,
-     aggregation_parameter_3,
-     aggregation_parameter_4,
-     aggregation_parameter_5) = bgc.dissolved_organic_matter.aggregation_parameters
+    (a₁,
+     a₂,
+     a₃,
+     a₄,
+     a₅) = bgc.dissolved_organic_matter.aggregation_parameters
 
     nano = bgc.phytoplankton.nano
     diatoms = bgc.phytoplankton.diatoms
@@ -360,11 +388,11 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
         pom.iron_half_saturation_for_bacteria,
         pom.bacterial_iron_uptake_efficiency,
         pom.maximum_bacterial_growth_rate,
-        aggregation_parameter_1,
-        aggregation_parameter_2,
-        aggregation_parameter_3,
-        aggregation_parameter_4,
-        aggregation_parameter_5,
+        a₁,
+        a₂,
+        a₃,
+        a₄,
+        a₅,
         zoo.microzooplankton_bacteria_concentration,
         zoo.mesozooplankton_bacteria_concentration,
         zoo.maximum_bacteria_concentration,
