@@ -168,7 +168,7 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     micro = zoo.micro
     meso = zoo.meso
 
-    inputs = IronTendencyArgs(
+    args = IronTendencyArgs(
         Fe,
         DOC,
         T,
@@ -271,7 +271,7 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
         meso.quadratic_mortality,
     )
 
-    return iron_tendency(bgc.iron, inputs)
+    return iron_tendency(bgc.iron, args)
 end
 
 @inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)
