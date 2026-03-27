@@ -245,13 +245,3 @@ end
     return iron_scavenging(λFe, POC + GOC, Fe′)
 end
 
-@inline function iron_scavenging(poc::TwoCompartmentCarbonIronParticles, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-    POC = @inbounds fields.POC[i, j, k]
-    GOC = @inbounds fields.GOC[i, j, k]
-    CaCO₃ = @inbounds fields.CaCO₃[i, j, k]
-    PSi = @inbounds fields.PSi[i, j, k]
-
-    Fe′ = free_iron(bgc.iron, i, j, k, grid, bgc, clock, fields, auxiliary_fields)
-
-    return iron_scavenging(poc, POC, GOC, CaCO₃, PSi, Fe′)
-end
