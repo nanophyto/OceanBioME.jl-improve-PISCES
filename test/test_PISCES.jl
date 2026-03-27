@@ -205,9 +205,8 @@ function test_PISCES_conservation() # only on CPU please
     PAR₃ = ConstantField(100)
     PAR  = ConstantField(300)
 
-    mixed_layer_depth = ConstantField(-10)
-    euphotic_depth  = ConstantField(-10)
-    euphotic_depth  = ConstantField(-10)
+    mixed_layer_depth = ConstantField(-10.0)
+    euphotic_depth  = ConstantField(-10.0)
     mean_mixed_layer_vertical_diffusivity = ConstantField(1)
     mean_mixed_layer_light = ConstantField(300)
 
