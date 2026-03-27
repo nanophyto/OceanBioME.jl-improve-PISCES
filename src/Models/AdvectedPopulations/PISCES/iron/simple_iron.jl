@@ -12,6 +12,110 @@ at a rate modified by `excess_scavenging_enhancement`.
            dissolved_ligand_ratio :: FT = 0.09   # μmol Fe / mmol C
 end
 
+struct IronTendencyArgs{FT}
+    Fe :: FT
+    DOC :: FT
+    T :: FT
+    POC :: FT
+    GOC :: FT
+    SFe :: FT
+    CaCO₃ :: FT
+    PSi :: FT
+    P :: FT
+    PChl :: FT
+    PFe :: FT
+    D :: FT
+    DChl :: FT
+    DFe :: FT
+    Z :: FT
+    M :: FT
+    NH₄ :: FT
+    NO₃ :: FT
+    PO₄ :: FT
+    Si :: FT
+    O₂ :: FT
+    z :: FT
+    zₘₓₗ :: FT
+    zₑᵤ :: FT
+    Si′ :: FT
+    background_shear :: FT
+    mixed_layer_shear :: FT
+    sinking_flux :: FT
+    sinking_iron_flux :: FT
+    first_anoxia_threshold :: FT
+    second_anoxia_threshold :: FT
+    minimum_iron_scavenging_rate :: FT
+    load_specific_iron_scavenging_rate :: FT
+    base_breakdown_rate :: FT
+    particle_temperature_sensitivity :: FT
+    maximum_iron_ratio_in_bacteria :: FT
+    iron_half_saturation_for_bacteria :: FT
+    bacterial_iron_uptake_efficiency :: FT
+    maximum_bacterial_growth_rate :: FT
+    dissolved_organic_aggregation_parameter_1 :: FT
+    dissolved_organic_aggregation_parameter_2 :: FT
+    dissolved_organic_aggregation_parameter_3 :: FT
+    dissolved_organic_aggregation_parameter_4 :: FT
+    dissolved_organic_aggregation_parameter_5 :: FT
+    microzooplankton_bacteria_concentration :: FT
+    mesozooplankton_bacteria_concentration :: FT
+    maximum_bacteria_concentration :: FT
+    bacteria_concentration_depth_exponent :: FT
+    doc_half_saturation_for_bacterial_activity :: FT
+    nitrate_half_saturation_for_bacterial_activity :: FT
+    ammonia_half_saturation_for_bacterial_activity :: FT
+    phosphate_half_saturation_for_bacterial_activity :: FT
+    iron_half_saturation_for_bacterial_activity :: FT
+    nano_exudated_fraction :: FT
+    nano_maximum_iron_ratio :: FT
+    nano_half_saturation_for_iron_uptake :: FT
+    nano_threshold_for_size_dependency :: FT
+    nano_size_ratio :: FT
+    nano_minimum_ammonium_half_saturation :: FT
+    nano_minimum_nitrate_half_saturation :: FT
+    nano_optimal_iron_quota :: FT
+    nano_base_growth_rate :: FT
+    nano_temperature_sensitivity :: FT
+    diatom_exudated_fraction :: FT
+    diatom_maximum_iron_ratio :: FT
+    diatom_half_saturation_for_iron_uptake :: FT
+    diatom_threshold_for_size_dependency :: FT
+    diatom_size_ratio :: FT
+    diatom_minimum_ammonium_half_saturation :: FT
+    diatom_minimum_nitrate_half_saturation :: FT
+    diatom_optimal_iron_quota :: FT
+    diatom_base_growth_rate :: FT
+    diatom_temperature_sensitivity :: FT
+    microzooplankton_iron_ratio :: FT
+    microzooplankton_non_assimilated_fraction :: FT
+    microzooplankton_maximum_grazing_rate :: FT
+    microzooplankton_temperature_sensitivity :: FT
+    microzooplankton_preference_for_p :: FT
+    microzooplankton_preference_for_d :: FT
+    microzooplankton_preference_for_z :: FT
+    microzooplankton_preference_for_poc :: FT
+    microzooplankton_specific_food_threshold_concentration :: FT
+    microzooplankton_grazing_half_saturation :: FT
+    microzooplankton_food_threshold_concentration :: FT
+    microzooplankton_minimum_growth_efficiency :: FT
+    microzooplankton_maximum_flux_feeding_rate :: FT
+    mesozooplankton_iron_ratio :: FT
+    mesozooplankton_non_assimilated_fraction :: FT
+    mesozooplankton_maximum_grazing_rate :: FT
+    mesozooplankton_temperature_sensitivity :: FT
+    mesozooplankton_preference_for_p :: FT
+    mesozooplankton_preference_for_d :: FT
+    mesozooplankton_preference_for_z :: FT
+    mesozooplankton_preference_for_poc :: FT
+    mesozooplankton_specific_food_threshold_concentration :: FT
+    mesozooplankton_grazing_half_saturation :: FT
+    mesozooplankton_food_threshold_concentration :: FT
+    mesozooplankton_minimum_growth_efficiency :: FT
+    mesozooplankton_maximum_flux_feeding_rate :: FT
+    mesozooplankton_quadratic_mortality :: FT
+end
+
+
 required_biogeochemical_tracers(::SimpleIron) = tuple(:Fe)
 
 const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
@@ -52,119 +156,122 @@ const SimpleIronPISCES = PISCES{<:Any, <:Any, <:Any, <:Any, <:Any, <:SimpleIron}
     sinking_iron_flux = edible_iron_flux_rate(bgc.particulate_organic_matter, i, j, k, grid, fields, auxiliary_fields)
 
     pom = bgc.particulate_organic_matter
-    dom = bgc.dissolved_organic_matter
     (aggregation_parameter_1,
      aggregation_parameter_2,
      aggregation_parameter_3,
      aggregation_parameter_4,
-     aggregation_parameter_5) = dom.aggregation_parameters
+     aggregation_parameter_5) = bgc.dissolved_organic_matter.aggregation_parameters
 
-    phyto = bgc.phytoplankton
-    nano = phyto.nano
-    diatoms = phyto.diatoms
+    nano = bgc.phytoplankton.nano
+    diatoms = bgc.phytoplankton.diatoms
     zoo = bgc.zooplankton
+    micro = zoo.micro
+    meso = zoo.meso
 
-    return iron_tendency(bgc.iron,
-                         pom.minimum_iron_scavenging_rate,
-                         pom.load_specific_iron_scavenging_rate,
-                         pom.base_breakdown_rate,
-                         pom.temperature_sensitivity,
-                         pom.maximum_iron_ratio_in_bacteria,
-                         pom.iron_half_saturation_for_bacteria,
-                         pom.bacterial_iron_uptake_efficiency,
-                         pom.maximum_bacterial_growth_rate,
-                         aggregation_parameter_1,
-                         aggregation_parameter_2,
-                         aggregation_parameter_3,
-                         aggregation_parameter_4,
-                         aggregation_parameter_5,
-                         zoo.microzooplankton_bacteria_concentration,
-                         zoo.mesozooplankton_bacteria_concentration,
-                         zoo.maximum_bacteria_concentration,
-                         zoo.bacteria_concentration_depth_exponent,
-                         zoo.doc_half_saturation_for_bacterial_activity,
-                         zoo.nitrate_half_saturation_for_bacterial_activity,
-                         zoo.ammonia_half_saturation_for_bacterial_activity,
-                         zoo.phosphate_half_saturation_for_bacterial_activity,
-                         zoo.iron_half_saturation_for_bacterial_activity,
-                         nano.exudated_fraction,
-                         nano.maximum_iron_ratio,
-                         nano.half_saturation_for_iron_uptake,
-                         nano.threshold_for_size_dependency,
-                         nano.size_ratio,
-                         nano.nutrient_limitation.minimum_ammonium_half_saturation,
-                         nano.nutrient_limitation.minimum_nitrate_half_saturation,
-                         nano.nutrient_limitation.optimal_iron_quota,
-                         nano.growth_rate.base_growth_rate,
-                         nano.growth_rate.temperature_sensitivity,
-                         diatoms.exudated_fraction,
-                         diatoms.maximum_iron_ratio,
-                         diatoms.half_saturation_for_iron_uptake,
-                         diatoms.threshold_for_size_dependency,
-                         diatoms.size_ratio,
-                         diatoms.nutrient_limitation.minimum_ammonium_half_saturation,
-                         diatoms.nutrient_limitation.minimum_nitrate_half_saturation,
-                         diatoms.nutrient_limitation.optimal_iron_quota,
-                         diatoms.growth_rate.base_growth_rate,
-                         diatoms.growth_rate.temperature_sensitivity,
-                         zoo.micro.iron_ratio,
-                         zoo.micro.non_assimilated_fraction,
-                         zoo.micro.maximum_grazing_rate,
-                         zoo.micro.temperature_sensitivity,
-                         zoo.micro.food_preferences.P,
-                         zoo.micro.food_preferences.D,
-                         zoo.micro.food_preferences.Z,
-                         zoo.micro.food_preferences.POC,
-                         zoo.micro.specific_food_threshold_concentration,
-                         zoo.micro.grazing_half_saturation,
-                         zoo.micro.food_threshold_concentration,
-                         zoo.micro.minimum_growth_efficiency,
-                         zoo.micro.maximum_flux_feeding_rate,
-                         zoo.meso.iron_ratio,
-                         zoo.meso.non_assimilated_fraction,
-                         zoo.meso.maximum_grazing_rate,
-                         zoo.meso.temperature_sensitivity,
-                         zoo.meso.food_preferences.P,
-                         zoo.meso.food_preferences.D,
-                         zoo.meso.food_preferences.Z,
-                         zoo.meso.food_preferences.POC,
-                         zoo.meso.specific_food_threshold_concentration,
-                         zoo.meso.grazing_half_saturation,
-                         zoo.meso.food_threshold_concentration,
-                         zoo.meso.minimum_growth_efficiency,
-                         zoo.meso.maximum_flux_feeding_rate,
-                         zoo.meso.quadratic_mortality,
-                         Fe,
-                         DOC,
-                         T,
-                         POC,
-                         GOC,
-                         SFe,
-                         CaCO₃,
-                         PSi,
-                         P,
-                         PChl,
-                         PFe,
-                         D,
-                         DChl,
-                         DFe,
-                         Z,
-                         M,
-                         NH₄,
-                         NO₃,
-                         PO₄,
-                         Si,
-                         O₂,
-                         z,
-                         zₘₓₗ,
-                         zₑᵤ,
-                         Si′,
-                         bgc.background_shear,
-                         bgc.mixed_layer_shear,
-                         sinking_flux,
-                         sinking_iron_flux,
-                         bgc.first_anoxia_threshold,
-                         bgc.second_anoxia_threshold)
+    inputs = IronTendencyArgs(
+        Fe,
+        DOC,
+        T,
+        POC,
+        GOC,
+        SFe,
+        CaCO₃,
+        PSi,
+        P,
+        PChl,
+        PFe,
+        D,
+        DChl,
+        DFe,
+        Z,
+        M,
+        NH₄,
+        NO₃,
+        PO₄,
+        Si,
+        O₂,
+        z,
+        zₘₓₗ,
+        zₑᵤ,
+        Si′,
+        bgc.background_shear,
+        bgc.mixed_layer_shear,
+        sinking_flux,
+        sinking_iron_flux,
+        bgc.first_anoxia_threshold,
+        bgc.second_anoxia_threshold,
+        pom.minimum_iron_scavenging_rate,
+        pom.load_specific_iron_scavenging_rate,
+        pom.base_breakdown_rate,
+        pom.temperature_sensitivity,
+        pom.maximum_iron_ratio_in_bacteria,
+        pom.iron_half_saturation_for_bacteria,
+        pom.bacterial_iron_uptake_efficiency,
+        pom.maximum_bacterial_growth_rate,
+        aggregation_parameter_1,
+        aggregation_parameter_2,
+        aggregation_parameter_3,
+        aggregation_parameter_4,
+        aggregation_parameter_5,
+        zoo.microzooplankton_bacteria_concentration,
+        zoo.mesozooplankton_bacteria_concentration,
+        zoo.maximum_bacteria_concentration,
+        zoo.bacteria_concentration_depth_exponent,
+        zoo.doc_half_saturation_for_bacterial_activity,
+        zoo.nitrate_half_saturation_for_bacterial_activity,
+        zoo.ammonia_half_saturation_for_bacterial_activity,
+        zoo.phosphate_half_saturation_for_bacterial_activity,
+        zoo.iron_half_saturation_for_bacterial_activity,
+        nano.exudated_fraction,
+        nano.maximum_iron_ratio,
+        nano.half_saturation_for_iron_uptake,
+        nano.threshold_for_size_dependency,
+        nano.size_ratio,
+        nano.nutrient_limitation.minimum_ammonium_half_saturation,
+        nano.nutrient_limitation.minimum_nitrate_half_saturation,
+        nano.nutrient_limitation.optimal_iron_quota,
+        nano.growth_rate.base_growth_rate,
+        nano.growth_rate.temperature_sensitivity,
+        diatoms.exudated_fraction,
+        diatoms.maximum_iron_ratio,
+        diatoms.half_saturation_for_iron_uptake,
+        diatoms.threshold_for_size_dependency,
+        diatoms.size_ratio,
+        diatoms.nutrient_limitation.minimum_ammonium_half_saturation,
+        diatoms.nutrient_limitation.minimum_nitrate_half_saturation,
+        diatoms.nutrient_limitation.optimal_iron_quota,
+        diatoms.growth_rate.base_growth_rate,
+        diatoms.growth_rate.temperature_sensitivity,
+        micro.iron_ratio,
+        micro.non_assimilated_fraction,
+        micro.maximum_grazing_rate,
+        micro.temperature_sensitivity,
+        micro.food_preferences.P,
+        micro.food_preferences.D,
+        micro.food_preferences.Z,
+        micro.food_preferences.POC,
+        micro.specific_food_threshold_concentration,
+        micro.grazing_half_saturation,
+        micro.food_threshold_concentration,
+        micro.minimum_growth_efficiency,
+        micro.maximum_flux_feeding_rate,
+        meso.iron_ratio,
+        meso.non_assimilated_fraction,
+        meso.maximum_grazing_rate,
+        meso.temperature_sensitivity,
+        meso.food_preferences.P,
+        meso.food_preferences.D,
+        meso.food_preferences.Z,
+        meso.food_preferences.POC,
+        meso.specific_food_threshold_concentration,
+        meso.grazing_half_saturation,
+        meso.food_threshold_concentration,
+        meso.minimum_growth_efficiency,
+        meso.maximum_flux_feeding_rate,
+        meso.quadratic_mortality,
+    )
+
+    return iron_tendency(bgc.iron, inputs)
 end
 
 @inline function (bgc::SimpleIronPISCES)(i, j, k, grid, ::Val{:Fe}, clock, fields, auxiliary_fields)
